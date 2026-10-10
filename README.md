@@ -1,6 +1,8 @@
 # Jardim da Sofia
 
-**Jogar:** https://juanjfmr.github.io/jardim-da-sofia/
+**Jogar:** https://juanjfmr.github.io/Jardim-da-sofia/
+
+Atenção ao **J maiúsculo**: no GitHub Pages o endereço diferencia maiúsculas de minúsculas.
 
 No celular, abra o link e use **Instalar app** (Chrome no Android) ou **Compartilhar › Adicionar à Tela de Início** (Safari no iPhone). Depois da primeira visita, o jogo funciona sem internet.
 
