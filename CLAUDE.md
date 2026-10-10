@@ -9,7 +9,7 @@ Requer Node.js 20 ou posterior.
 ```sh
 npm ci
 npm run build   # gera dist/ (copia src, Three.js, fonte Fredoka e monta o service worker)
-npm test        # reconstrói dist e roda os 26 testes
+npm test        # reconstrói dist e roda os 29 testes
 python3 -m http.server 8080 --directory dist
 ```
 
@@ -23,11 +23,11 @@ Não abra `index.html` por `file://`: o jogo usa módulos JavaScript. `dist/` n�
 - `src/world.js`: cenário Three.js. O enquadramento (`fitFrustum`) ajusta a câmera ao espaço livre da tela. Também tem nuvens, noite, bolhas, espuma, comida que voa até a boca, toque com área generosa e qualidade adaptativa.
 - `src/pet.js`: modelo procedural e animações do Pipo (olhar, boca, squash & stretch, reações e enfeites).
 - `src/state.js`: estado puro e testado. Necessidades, recompensas, enfeites, nome, níveis, palavras, cores, formas e tempo de tela.
-- `src/audio.js`: efeitos sintetizados (marimba, pop, fanfarra…), música de fundo com ducking, escolha da melhor voz pt-BR e vibração.
+- `src/audio.js`: efeitos sintetizados (marimba, pop, fanfarra…), música de fundo com ducking, vozes e vibração. `rankVoices` (pura e testada) ordena as vozes em português e esconde as robóticas (Eloquence do iOS, eSpeak); a família escolhe voz, velocidade e tom no cantinho, e a escolha fica salva no aparelho (`voiceURI`, `voiceRate`, `voicePitch`).
 - `src/icons.js`: ícones SVG e o rosto do Pipo (`pipoFace`).
 - `src/index.html`, `src/style.css`: estrutura e visual. Fonte Fredoka local; modo noturno; layouts para celular, paisagem e tablet.
 - `src/manifest.webmanifest`, `src/sw.js`, `src/icons/`, `src/favicon.svg`: PWA. O build preenche a versão e a lista de arquivos do service worker.
-- `tests/`: `state.test.mjs` (regras), `ui.test.mjs` (jornada completa em linkedom, sem WebGL), `forms.test.mjs` (demonstração, encaixes e callbacks de rodadas antigas) e `world.test.mjs` (Pipo, bolhas e enquadramento).
+- `tests/`: `state.test.mjs` (regras), `ui.test.mjs` (jornada completa em linkedom, sem WebGL), `forms.test.mjs` (demonstração, encaixes e callbacks de rodadas antigas), `voice.test.mjs` (ranking e tela de vozes com speechSynthesis simulado) e `world.test.mjs` (Pipo, bolhas e enquadramento).
 
 ## Princípios de design (mantenha ao mudar)
 
@@ -41,10 +41,10 @@ Não abra `index.html` por `file://`: o jogo usa módulos JavaScript. `dist/` n�
 
 ## Validação
 
-Os 26 testes passam. O visual e as interações foram conferidos em Chromium real (Playwright, WebGL por SwiftShader) em 390×844, 375×667, 844×390, 820×1180, 1180×820 e 1280×720. Foram testados: arrastar fruta até a boca, arrastar letra, mola ao soltar fora, estourar bolhas no 3D, banho completo, dica automática, portão dos adultos e tela de descanso. Formas também tem testes de demonstração, tabuleiro persistente, níveis e recompensa única. A voz depende do aparelho; teste num celular real com som ligado.
+Os 29 testes passam. O visual e as interações foram conferidos em Chromium real (Playwright, WebGL por SwiftShader) em 390×844, 375×667, 844×390, 820×1180, 1180×820 e 1280×720. Foram testados: arrastar fruta até a boca, arrastar letra, mola ao soltar fora, estourar bolhas no 3D, banho completo, dica automática, portão dos adultos e tela de descanso. Formas também tem testes de demonstração, tabuleiro persistente, níveis e recompensa única; a escolha de voz tem ranking e interface testados com listas simuladas. A voz depende do aparelho; teste num celular real com som ligado.
 
 ## Publicação
 
-O workflow `.github/workflows/pages.yml` roda os testes em cada pull request. A cada push na `main`, ele testa, gera `dist/` e publica no GitHub Pages: https://juanjfmr.github.io/jardim-da-sofia/
+O workflow `.github/workflows/pages.yml` roda os testes em cada pull request. A cada push na `main`, ele testa, gera `dist/` e publica no GitHub Pages: https://juanjfmr.github.io/Jardim-da-sofia/
 
 No repositório, o Pages precisa estar com a origem **GitHub Actions** (Settings › Pages). Para publicar em outro lugar, hospede o conteúdo de `dist/` em qualquer serviço de sites estáticos com HTTPS. O HTTPS é necessário para o service worker e para instalar o jogo no celular.

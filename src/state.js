@@ -51,6 +51,8 @@ export const ACCESSORIES = [
   { id: 'glasses', emoji: '🕶️', label: 'Óculos', need: 30 },
 ];
 const ACCESSORY_IDS = ACCESSORIES.map(a => a.id);
+export const VOICE_SPEEDS = ['slow', 'normal', 'fast'];
+export const VOICE_TONES = ['normal', 'high', 'higher'];
 const COMPLETION_KEYS = ['letters', 'count', 'colors', 'shapes', 'music', 'garden', 'bath', 'play'];
 
 export function initialState() {
@@ -60,6 +62,7 @@ export function initialState() {
     sleeping: false,
     level: 1,
     sound: true, voice: true, music: true, fullscreen: true,
+    voiceURI: '', voiceRate: 'normal', voicePitch: 'normal',
     name: DEFAULT_NAME, article: 'da',
     limit: 0, playDay: '', playSeconds: 0,
     rewards: 0, accessory: 'none',
@@ -87,6 +90,10 @@ export function sanitizeState(input) {
   if ('name' in input) s.name = sanitizeName(input.name);
   if (['da', 'do', 'de'].includes(input.article)) s.article = input.article;
   if ([0, 15, 30, 45].includes(input.limit)) s.limit = input.limit;
+  // Voz escolhida no aparelho ('' = automática), velocidade e tom.
+  if (typeof input.voiceURI === 'string') s.voiceURI = input.voiceURI.slice(0, 300);
+  if (VOICE_SPEEDS.includes(input.voiceRate)) s.voiceRate = input.voiceRate;
+  if (VOICE_TONES.includes(input.voicePitch)) s.voicePitch = input.voicePitch;
   if (typeof input.playDay === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(input.playDay)) s.playDay = input.playDay;
   if (Number.isFinite(input.playSeconds)) s.playSeconds = clamp(Math.floor(input.playSeconds), 0, 86400);
   if (ACCESSORY_IDS.includes(input.accessory)) s.accessory = input.accessory;

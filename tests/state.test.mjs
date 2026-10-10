@@ -162,3 +162,15 @@ test('tempo de tela: conta por dia, só com limite ligado, e recomeça no dia se
   assert.equal(timeIsUp({ ...s, limit: 0 }, day), false);
   assert.match(todayKey(new Date(2026, 0, 5)), /^2026-01-05$/);
 });
+
+test('preferências de voz: só valores conhecidos, e voz vazia quer dizer automática', () => {
+  const s = initialState();
+  assert.equal(s.voiceURI, '');
+  assert.equal(s.voiceRate, 'normal');
+  assert.equal(s.voicePitch, 'normal');
+  const t = sanitizeState({ voiceURI: 'com.apple.voice.enhanced.pt-BR.Luciana', voiceRate: 'slow', voicePitch: 'higher' });
+  assert.deepEqual([t.voiceURI, t.voiceRate, t.voicePitch], ['com.apple.voice.enhanced.pt-BR.Luciana', 'slow', 'higher']);
+  const u = sanitizeState({ voiceURI: 42, voiceRate: 'turbo', voicePitch: 2 });
+  assert.deepEqual([u.voiceURI, u.voiceRate, u.voicePitch], ['', 'normal', 'normal']);
+  assert.equal(sanitizeState({ voiceURI: 'x'.repeat(999) }).voiceURI.length, 300);
+});

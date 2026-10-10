@@ -768,6 +768,30 @@ h1, h2, h3 { font-weight: 600; }
   border-radius: 20px; box-shadow: inset 0 -5px 0 rgba(0, 0, 0, .15);
 }
 
+/* Voz do Pipo */
+.voice-box { padding: 12px 0 14px; border-bottom: 1px solid #ebebdc; }
+.voice-title { font-size: 16px; margin-bottom: 10px; }
+.voice-title small { display: block; font-size: 13px; color: #8f9886; margin-top: 2px; }
+.voice-list { display: flex; flex-direction: column; gap: 8px; padding: 2px; }
+.voice-row { display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 4px; background: #f2f0e2; border: 3px solid transparent; border-radius: 18px; }
+.voice-row.selected { background: var(--green-soft); border-color: var(--green); }
+.voice-pick { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 6px; text-align: left; border-radius: 14px; }
+.voice-pick:active:not(:disabled) { transform: scale(.98); }
+.voice-radio { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; border: 3px solid #b9bfa8; background: #fff; }
+.voice-row.selected .voice-radio { border-color: var(--green); background: radial-gradient(circle, var(--green) 0 45%, #fff 50%); }
+.voice-text { min-width: 0; }
+.voice-text strong { display: block; font-size: 16px; font-weight: 600; color: #4f6d55; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.voice-text small { display: block; font-size: 13px; color: #8f9886; margin-top: 1px; }
+.voice-hear { width: 46px; height: 46px; background: #fff; }
+.voice-empty { font-size: 14px; color: #8f6f4f; background: #fff3dc; border-radius: 14px; padding: 12px; }
+.voice-tune { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; font-size: 15px; }
+.voice-help { margin-top: 14px; background: #f3efe1; border-radius: 16px; padding: 10px 14px; font-size: 14px; line-height: 1.5; color: #6b735f; }
+.voice-help summary { cursor: pointer; font-weight: 600; color: #4f6d55; padding: 4px 0; }
+.voice-help-item { margin-top: 10px; }
+.voice-help ol { margin: 6px 0 0; padding-left: 20px; }
+.voice-help li { margin-bottom: 4px; }
+.voice-help p { margin: 6px 0 0; }
+
 /* ---------- Hora de descansar ---------- */
 .rest-veil { background: linear-gradient(180deg, #24345c, #4a5d8c 70%, #71839f); z-index: 40; }
 .rest-card { text-align: center; color: #f2f4ff; max-width: 420px; }

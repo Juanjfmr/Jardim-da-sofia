@@ -24,6 +24,45 @@ const MELODY = [
 ];
 const CHORDS = [[48, 60, 64, 67], [45, 57, 60, 64], [41, 57, 60, 65], [43, 55, 59, 62], [48, 60, 64, 67], [45, 57, 60, 64], [41, 57, 60, 65], [48, 60, 64, 67]];
 
+// ---- Vozes do aparelho ----
+// Vozes "divertidas" ou antigas que soam robóticas (iOS Eloquence, eSpeak, novidades da Apple).
+const ROBOTIC = /eloquence|espeak|\b(eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley|albert|bad news|bells|boing|bubbles|cellos|good news|jester|organ|superstar|trinoids|whisper|wobble|zarvox)\b/i;
+const PREMIUM = /natural|neural|online|enhanced|premium|aprimorad|network|wavenet|studio/i;
+export const VOICE_RATES = { slow: 0.82, normal: 0.95, fast: 1.08 };
+export const VOICE_PITCHES = { normal: 1, high: 1.12, higher: 1.25 };
+
+function cleanVoiceName(name = '') {
+  return name
+    .replace(/^Microsoft\s+/i, '')
+    .replace(/\s*[-–]\s*Portugu[eê]s.*$/i, '')
+    .replace(/\s*[-–]\s*Portuguese.*$/i, '')
+    .replace(/\s*\((Portugu[eê]s|Portuguese)[^()]*(\([^)]*\))?[^)]*\)/i, '')
+    .trim() || name;
+}
+
+// Descreve uma voz em português (ou devolve null). Pura: testada com listas de iPhone, Android e computador.
+export function describeVoice(v) {
+  if (!v) return null;
+  const lang = String(v.lang || '').replace(/_/g, '-');
+  if (!/^pt\b/i.test(lang) && !/^pt$/i.test(lang)) return null;
+  const text = (v.name || '') + ' ' + (v.voiceURI || '');
+  const br = /^pt-BR/i.test(lang) || /brasil|brazil/i.test(v.name || '');
+  const robotic = ROBOTIC.test(text);
+  const premium = PREMIUM.test(text) || v.localService === false;
+  const score = (br ? 100 : 40) + (premium ? 20 : 0) + (/luciana|francisca|thalita|google/i.test(v.name || '') ? 6 : 0) + (v.default ? 2 : 0) - (robotic ? 80 : 0);
+  return { uri: v.voiceURI || v.name, name: cleanVoiceName(v.name), region: br ? 'Brasil' : 'Portugal', premium, robotic, score, voice: v };
+}
+
+// Vozes em português da melhor para a pior. As robóticas só aparecem se não houver outra.
+export function rankVoices(voices = []) {
+  const all = voices.map(describeVoice).filter(Boolean);
+  const good = all.filter(d => !d.robotic);
+  const seen = new Set();
+  return (good.length ? good : all)
+    .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name, 'pt-BR'))
+    .filter(d => !seen.has(d.uri) && seen.add(d.uri));
+}
+
 export class GardenAudio {
   constructor() {
     this.ctx = null;
@@ -31,7 +70,9 @@ export class GardenAudio {
     this.voice = true;
     this.musicOn = true;
     this.voices = [];
-    this.bestVoice = null;
+    this.ranked = [];
+    this.prefs = { uri: '', rate: 'normal', pitch: 'normal' };
+    this.onVoicesChanged = null;
     this.nodes = new Set();
     this.musicHolds = new Set();
     this.night = false;
@@ -43,17 +84,26 @@ export class GardenAudio {
     }
   }
 
-  refreshVoices() {
+  // notify=false quando quem pede a lista é a própria tela (evita redesenhar em laço).
+  refreshVoices(notify = true) {
     try { this.voices = speechSynthesis.getVoices() || []; } catch { this.voices = []; }
-    const score = v => {
-      let s = 0;
-      if (/pt[-_]BR/i.test(v.lang)) s += 20; else if (/^pt/i.test(v.lang)) s += 8; else return -1;
-      if (/natural|neural|online|enhanced|premium|aprimorad/i.test(v.name)) s += 6;
-      if (/luciana|francisca|thalita|google/i.test(v.name)) s += 4;
-      if (/compact|eloquence/i.test(v.name)) s -= 4;
-      return s;
-    };
-    this.bestVoice = this.voices.map(v => [score(v), v]).filter(([s]) => s >= 0).sort((a, b) => b[0] - a[0])[0]?.[1] || null;
+    this.ranked = rankVoices(this.voices);
+    if (notify) this.onVoicesChanged?.();
+  }
+
+  // Vozes em português disponíveis neste aparelho (a primeira é a automática).
+  listVoices() {
+    // Alguns navegadores (iOS) só entregam as vozes depois do primeiro pedido.
+    if (!this.voices.length && typeof window !== 'undefined' && 'speechSynthesis' in window) this.refreshVoices(false);
+    return this.ranked;
+  }
+  setVoicePrefs({ uri = '', rate = 'normal', pitch = 'normal' } = {}) {
+    this.prefs = { uri: String(uri || ''), rate: rate in VOICE_RATES ? rate : 'normal', pitch: pitch in VOICE_PITCHES ? pitch : 'normal' };
+  }
+  // A voz escolhida pela família; se ela não existir neste aparelho, a melhor automática.
+  currentVoice(uri = this.prefs.uri) {
+    const list = this.listVoices();
+    return (uri && list.find(d => d.uri === uri)) || list[0] || null;
   }
 
   async activate() {
@@ -252,17 +302,19 @@ export class GardenAudio {
   }
 
   // ---- Voz ----
-  say(text, onEnd) {
-    if (!this.voice || typeof window === 'undefined' || !('speechSynthesis' in window) || !text) { onEnd?.(); return; }
+  say(text, onEnd, options = {}) {
+    if ((!this.voice && !options.force) || typeof window === 'undefined' || !('speechSynthesis' in window) || !text) { onEnd?.(); return; }
     try {
       const token = ++this.speechToken;
       const speak = () => {
         if (token !== this.speechToken) return;
         const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'pt-BR';
-        u.rate = 0.92;
-        u.pitch = 1.15;
-        if (this.bestVoice) u.voice = this.bestVoice;
+        const chosen = this.currentVoice(options.uri ?? this.prefs.uri);
+        u.lang = String(chosen?.voice.lang || 'pt-BR').replace(/_/g, '-');
+        u.rate = VOICE_RATES[options.rate || this.prefs.rate] || VOICE_RATES.normal;
+        u.pitch = VOICE_PITCHES[options.pitch || this.prefs.pitch] || 1;
+        u.volume = 1;
+        if (chosen) u.voice = chosen.voice;
         const done = () => {
           if (token !== this.speechToken) return;
           this.speaking = false;
@@ -282,6 +334,9 @@ export class GardenAudio {
   }
 
   letter(l) { this.say(LETTER_NAMES[l] || l); }
+
+  // Para o cantinho da família ouvir uma voz antes de escolher (toca mesmo com a voz desligada).
+  preview(text, options = {}) { this.say(text, null, { ...options, force: true }); }
 
   stopSpeech() {
     this.speechToken++;
