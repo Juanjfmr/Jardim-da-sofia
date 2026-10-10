@@ -37,7 +37,8 @@ Fica protegido: só abre **segurando a engrenagem por 2 segundos**. Um toque rá
 
 - Nome da criança e artigo (“Jardim da Sofia”, “Jardim do Pedro”, “Jardim de Ana”). Também dá para deixar sem nome.
 - Desafio: Descobrir, Explorar ou Desafiar.
-- Voz do Pipo, efeitos sonoros e vibração, música de fundo (baixinha, abaixa sozinha quando o Pipo fala).
+- **Voz do Pipo:** escolha entre as vozes em português do aparelho (cada uma com botão de ouvir), além da velocidade e do tom. A opção automática pega a melhor voz e esconde as robóticas. Para quem achar a voz robótica, há um passo a passo para instalar uma voz mais natural no iPhone (Luciana Aprimorada) e no Android (Serviços de fala do Google).
+- Efeitos sonoros e vibração, música de fundo (baixinha, abaixa sozinha quando o Pipo fala).
 - Tela cheia ao começar.
 - Tempo de brincadeira por dia: livre, 15, 30 ou 45 minutos. Quando acaba, o Pipo vai dormir e só um adulto libera, segurando o botão.
 
@@ -58,7 +59,7 @@ npm run build
 npm test
 ```
 
-`npm test` reconstrói `dist` e executa 18 testes: estado, a jornada completa da interface em DOM simulado, geometria do Pipo e o enquadramento 3D em sete tamanhos de tela. Os testes de DOM não renderizam WebGL; o visual foi conferido em Chromium real, em celular, celular deitado, tablet e computador.
+`npm test` reconstrói `dist` e executa 21 testes: estado, a jornada completa da interface em DOM simulado, a escolha de voz (com listas de vozes de iPhone, Android e computador), geometria do Pipo e o enquadramento 3D em sete tamanhos de tela. Os testes de DOM não renderizam WebGL; o visual foi conferido em Chromium real, em celular, celular deitado, tablet e computador.
 
 Para jogar localmente, sirva `dist` por HTTP (o jogo usa módulos JavaScript, então `file://` não funciona):
 

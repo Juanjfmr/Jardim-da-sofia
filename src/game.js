@@ -108,6 +108,7 @@ function buildDock() {
 function sync() {
   audio.enabled = state.sound;
   audio.voice = state.voice;
+  audio.setVoicePrefs({ uri: state.voiceURI, rate: state.voiceRate, pitch: state.voicePitch });
   audio.setMusic(state.music);
   audio.setNight(state.sleeping);
   $('flower-number').textContent = state.rewards;
@@ -652,6 +653,7 @@ function renderParents() {
     b.dataset.limit = value;
     $('limit-options').appendChild(b);
   }
+  renderVoicePicker();
   if (!saveAvailable) $('parent-note').textContent = 'Este navegador não permitiu salvar o jardim. Nesta sessão dá para brincar normalmente.';
 }
 function selectValue(select, value) {
@@ -660,6 +662,69 @@ function selectValue(select, value) {
   }
   try { select.value = value; } catch { /* DOM simplificado sem esse setter */ }
 }
+// ---- Voz do Pipo: escolher entre as vozes do aparelho, com velocidade e tom ----
+const voiceSample = () => 'Oi' + nm(', ') + '! Eu sou o Pipo. Vamos contar? Um, dois, três!';
+const VOICE_HELP = {
+  ios: ['<strong>iPhone e iPad</strong>', '<ol><li>Abra <b>Ajustes › Acessibilidade › Conteúdo Falado › Vozes</b>.</li><li>Toque em <b>Português (Brasil)</b> e depois em <b>Luciana</b>.</li><li>Baixe a versão <b>Aprimorada</b> (ou <b>Premium</b>, se aparecer).</li><li>Feche o jogo por completo, abra de novo e escolha a nova voz aqui.</li></ol>'],
+  android: ['<strong>Android</strong>', '<ol><li>Abra <b>Configurações</b> e procure por <b>texto em voz</b> (Conversão de texto em voz).</li><li>Em <b>Mecanismo preferido</b>, escolha <b>Serviços de fala do Google</b>. Nos Samsung, trocar o mecanismo da Samsung pelo do Google costuma deixar a voz mais natural.</li><li>Toque na engrenagem ⚙️ › <b>Instalar dados de voz</b> › <b>Português (Brasil)</b> e baixe uma voz.</li><li>Feche o jogo por completo, abra de novo e escolha a nova voz aqui.</li></ol>'],
+  desktop: ['<strong>Computador</strong>', '<p>No Microsoft Edge, as vozes <b>Natural</b> (Francisca, Antonio) soam bem naturais. No Chrome, escolha <b>Google português do Brasil</b>.</p>'],
+};
+function deviceKind() {
+  const ua = navigator.userAgent || '';
+  if (/iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'ios';
+  if (/Android/i.test(ua)) return 'android';
+  return 'desktop';
+}
+function renderVoicePicker() {
+  const list = audio.listVoices();
+  const box = $('voice-list');
+  box.innerHTML = '';
+  if (!list.length) {
+    box.innerHTML = '<p class="voice-empty">Este aparelho ainda não tem voz em português. Veja abaixo como instalar uma.</p>';
+    $('voice-help').open = true;
+  } else {
+    const current = list.some(d => d.uri === state.voiceURI) ? state.voiceURI : '';
+    const rows = [{ uri: '', title: 'Automática', sub: 'A melhor deste aparelho: ' + list[0].name },
+      ...list.map(d => ({ uri: d.uri, title: d.name, sub: d.region + (d.premium ? ' · alta qualidade' : '') }))];
+    for (const r of rows) {
+      const row = document.createElement('div');
+      row.className = 'voice-row' + (r.uri === current ? ' selected' : '');
+      const pick = makeButton('voice-pick', '<span class="voice-radio"></span><span class="voice-text"><strong></strong><small></small></span>', () => {
+        state = { ...state, voiceURI: r.uri };
+        sync();
+        renderVoicePicker();
+        audio.preview(voiceSample());
+      });
+      pick.querySelector('strong').textContent = r.title;
+      pick.querySelector('small').textContent = r.sub;
+      pick.setAttribute('role', 'radio');
+      pick.setAttribute('aria-checked', String(r.uri === current));
+      pick.dataset.voice = r.uri;
+      const hear = makeButton('round-btn voice-hear', icon('sound'), () => audio.preview(voiceSample(), { uri: r.uri }), 'Ouvir ' + r.title);
+      row.append(pick, hear);
+      box.appendChild(row);
+    }
+  }
+  const presets = (id, key, options) => {
+    $(id).innerHTML = '';
+    for (const [value, label] of options) {
+      const b = makeButton(state[key] === value ? 'selected' : '', label, () => {
+        state = { ...state, [key]: value };
+        sync();
+        renderVoicePicker();
+        audio.preview(voiceSample());
+      });
+      b.dataset.value = value;
+      $(id).appendChild(b);
+    }
+  };
+  presets('rate-options', 'voiceRate', [['slow', 'Devagar'], ['normal', 'Normal'], ['fast', 'Rápida']]);
+  presets('pitch-options', 'voicePitch', [['normal', 'Natural'], ['high', 'Mais fino'], ['higher', 'Bem fino']]);
+  const kind = deviceKind();
+  $('voice-help-body').innerHTML = [kind, ...['ios', 'android', 'desktop'].filter(k => k !== kind)].map(k => '<div class="voice-help-item">' + VOICE_HELP[k].join('') + '</div>').join('');
+}
+audio.onVoicesChanged = () => { if (!$('parent-modal').hidden) renderVoicePicker(); };
+
 function closeParents() {
   commitName();
   $('parent-modal').hidden = true;

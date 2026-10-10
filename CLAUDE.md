@@ -9,7 +9,7 @@ Requer Node.js 20 ou posterior.
 ```sh
 npm ci
 npm run build   # gera dist/ (copia src, Three.js, fonte Fredoka e monta o service worker)
-npm test        # reconstrói dist e roda os 18 testes
+npm test        # reconstrói dist e roda os 21 testes
 python3 -m http.server 8080 --directory dist
 ```
 
@@ -23,11 +23,11 @@ Não abra `index.html` por `file://`: o jogo usa módulos JavaScript. `dist/` n�
 - `src/world.js`: cenário Three.js. O enquadramento (`fitFrustum`) ajusta a câmera ao espaço livre da tela. Também tem nuvens, noite, bolhas, espuma, comida que voa até a boca, toque com área generosa e qualidade adaptativa.
 - `src/pet.js`: modelo procedural e animações do Pipo (olhar, boca, squash & stretch, reações e enfeites).
 - `src/state.js`: estado puro e testado. Necessidades, recompensas, enfeites, nome, níveis, palavras, cores, formas e tempo de tela.
-- `src/audio.js`: efeitos sintetizados (marimba, pop, fanfarra…), música de fundo com ducking, escolha da melhor voz pt-BR e vibração.
+- `src/audio.js`: efeitos sintetizados (marimba, pop, fanfarra…), música de fundo com ducking, vozes e vibração. `rankVoices` (pura e testada) ordena as vozes em português e esconde as robóticas (Eloquence do iOS, eSpeak); a família escolhe voz, velocidade e tom no cantinho, e a escolha fica salva no aparelho (`voiceURI`, `voiceRate`, `voicePitch`).
 - `src/icons.js`: ícones SVG e o rosto do Pipo (`pipoFace`).
 - `src/index.html`, `src/style.css`: estrutura e visual. Fonte Fredoka local; modo noturno; layouts para celular, paisagem e tablet.
 - `src/manifest.webmanifest`, `src/sw.js`, `src/icons/`, `src/favicon.svg`: PWA. O build preenche a versão e a lista de arquivos do service worker.
-- `tests/`: `state.test.mjs` (regras), `ui.test.mjs` (jornada completa em linkedom, sem WebGL) e `world.test.mjs` (Pipo, bolhas e enquadramento).
+- `tests/`: `state.test.mjs` (regras), `ui.test.mjs` (jornada completa em linkedom, sem WebGL), `voice.test.mjs` (ranking e tela de vozes com speechSynthesis simulado) e `world.test.mjs` (Pipo, bolhas e enquadramento).
 
 ## Princípios de design (mantenha ao mudar)
 
@@ -41,7 +41,7 @@ Não abra `index.html` por `file://`: o jogo usa módulos JavaScript. `dist/` n�
 
 ## Validação
 
-Os 18 testes passam. O visual e as interações foram conferidos em Chromium real (Playwright, WebGL por SwiftShader) em 390×844, 375×667, 844×390, 820×1180, 1180×820 e 1280×720. Foram testados: arrastar fruta até a boca, arrastar letra, mola ao soltar fora, estourar bolhas no 3D, banho completo, dica automática, portão dos adultos e tela de descanso. A voz depende do aparelho; teste num celular real com som ligado.
+Os 21 testes passam. O visual e as interações foram conferidos em Chromium real (Playwright, WebGL por SwiftShader) em 390×844, 375×667, 844×390, 820×1180, 1180×820 e 1280×720. Foram testados: arrastar fruta até a boca, arrastar letra, mola ao soltar fora, estourar bolhas no 3D, banho completo, dica automática, portão dos adultos e tela de descanso. A voz depende do aparelho; teste num celular real com som ligado.
 
 ## Publicação
 
