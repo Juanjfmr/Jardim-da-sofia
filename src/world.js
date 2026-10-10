@@ -540,6 +540,7 @@ export class GardenWorld {
     this.pet.setSleeping(s.sleeping);
     this.pet.setDirty((100 - s.clean) / 100);
     this.pet.setAccessory(s.accessory);
+    this.pet.setOutfit(s.outfit, s.outfitColor);
     this.updatePlants(s.plants);
     this.setNight(s.sleeping);
   }

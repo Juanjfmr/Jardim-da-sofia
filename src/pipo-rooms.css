@@ -1,0 +1,181 @@
+/* A casinha de brincar: tecidos, madeira clara e utensílios grandes. */
+#pipo-places {
+  position: absolute; z-index: 4; bottom: 16px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 12px; width: min(410px, calc(100% - 32px));
+}
+.pipo-place {
+  display: flex; align-items: center; justify-content: center; gap: 9px; flex: 1;
+  min-height: 66px; padding: 8px; border: 3px solid #fffdf8; border-radius: 23px;
+  color: #536859; font-size: 16px; font-weight: 600; box-shadow: 0 6px 0 #afc7b184, 0 9px 18px #42664515;
+}
+.pipo-place > span:first-child { font-size: 32px; }
+.pipo-place > span:last-child { white-space: nowrap; }
+@media (max-width: 400px) { .pipo-place { gap: 6px; font-size: 15px; } }
+.clothes-place { background: #eadffa; }
+.kitchen-place { background: #ffe2af; }
+.pipo-room-veil { background: #47604475; padding: max(8px, var(--safe-top)) max(8px, var(--safe-right)) max(8px, var(--safe-bottom)) max(8px, var(--safe-left)); }
+.pipo-room-card {
+  width: min(900px, 100%); max-height: 100%; display: flex; flex-direction: column;
+  border: 4px solid #fffdf8; border-radius: 30px; overflow: hidden;
+  background: #fff9ed; box-shadow: 0 24px 80px #34483c55;
+}
+.pipo-room-header { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: #fffdf6; border-bottom: 2px solid #e9ddc4; flex-shrink: 0; }
+.pipo-room-header > div { flex: 1; }
+.pipo-room-header h2 { font-size: clamp(22px, 3vw, 29px); line-height: 1.1; color: #526a59; }
+.pipo-room-header .eyebrow { font-size: 10px; color: #a3916d; letter-spacing: 1.4px; }
+.room-back, .wardrobe-listen, .kitchen-listen { display: flex; align-items: center; justify-content: center; min-width: 56px; width: 56px; min-height: 56px; border-radius: 20px; border: 3px solid white; background: #e6efdb; font-size: 30px; box-shadow: 0 3px 0 #c9d7b7; }
+.room-back svg, .wardrobe-listen svg, .kitchen-listen svg { width: 30px; height: 30px; }
+.room-header-toy { font-size: 36px; padding: 4px; }
+.pipo-room-body { overflow-y: auto; overscroll-behavior: contain; min-height: 0; }
+.pipo-room { padding: 14px; }
+.room-guide, .kitchen-guide { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: #fffdf8; border: 2px solid #efe4cd; border-radius: 23px; margin-bottom: 14px; }
+.room-guide > span, .kitchen-step-icon { font-size: 32px; }
+.room-guide p, .kitchen-instruction { flex: 1; color: #64735a; font-size: 17px; line-height: 1.25; }
+.wardrobe-studio { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(160px, 1.25fr); gap: 16px; }
+.wardrobe-mirror {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;
+  border: 7px solid #e6c28d; border-radius: 90px 90px 30px 30px; background: radial-gradient(ellipse at 50% 45%, #fffdf6 20%, #deede8 90%);
+  box-shadow: inset 0 0 0 3px #fff9e5, 0 5px 0 #bc9970; padding: 12px 5px; min-height: 240px;
+}
+.wardrobe-portrait { display: block; width: 100%; max-width: 220px; }
+.wardrobe-portrait svg { width: 100%; height: auto; display: block; }
+.wardrobe-reaction { display: block; padding: 4px 8px; font-size: 14px; line-height: 1.2; color: #687765; }
+.wardrobe-cabinet { padding: 12px; border: 3px solid #f3debc; border-radius: 20px; background: repeating-linear-gradient(0deg, transparent 0 70px, #d6b37b12 71px 73px), #f6e5c7; box-shadow: inset 0 0 0 3px #fff5df; }
+.wardrobe-room h3 { font-size: 17px; color: #85704c; margin: 0 0 9px; }
+.wardrobe-outfits { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
+.wardrobe-outfit { min-height: 94px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 2px; gap: 3px; background: #fffaf0; border: 3px solid #fff; border-radius: 18px; box-shadow: 0 3px 0 #dbc5a2; touch-action: none; }
+.wardrobe-outfit svg { width: 52px; height: 55px; }
+.wardrobe-outfit span { font-size: 12px; font-weight: 500; }
+.wardrobe-outfit.is-selected, .wardrobe-color.is-selected { border-color: #699d7f; background: #f0f7e7; box-shadow: 0 0 0 2px #a9cba8; }
+.wardrobe-colors { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.wardrobe-color { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 64px; padding: 4px 0; gap: 3px; border: 3px solid #fff; border-radius: 15px; background: #fff8e9; }
+.wardrobe-color i { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #ffffffaa; }
+.wardrobe-color span { font-size: 10px; }
+.wardrobe-gifts { margin-top: 22px; border-top: 2px dashed #e7d8ba; padding-top: 14px; }
+.wardrobe-gifts .wardrobe-progress { padding: 0 0 10px; font-size: 15px; color: #918064; }
+.wardrobe-gifts .accessory-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.wardrobe-gifts .accessory-btn { min-height: 56px; aspect-ratio: auto; padding: 8px 0; border: 3px solid #fff; border-radius: 18px; }
+.wardrobe-gifts .acc-emoji { font-size: 30px; }
+.wardrobe-gifts .acc-lock { inset: auto 0 1px; gap: 0; }
+.wardrobe-gifts .acc-lock svg { width: 14px; height: 14px; }
+.wardrobe-gifts .acc-lock small { font-size: 10px; }
+.kitchen-room { background: linear-gradient(#fff9ed, #f8edda); }
+.kitchen-recipes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; margin-bottom: 12px; }
+.kitchen-recipe { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 4px; min-height: 66px; border-radius: 20px; border: 3px solid #fff; background: #ece9d9; font-size: 15px; box-shadow: 0 3px 0 #ddd0b5; }
+.kitchen-recipe > span:first-child { font-size: 32px; }
+.kitchen-recipe.is-selected { background: #ffdda0; border-color: #ecb861; box-shadow: 0 0 0 2px #f5d49b; }
+.kitchen-workspace { display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 12px; align-items: stretch; margin-bottom: 16px; }
+.kitchen-chef { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; border-radius: 22px; padding: 8px 4px; background: radial-gradient(ellipse, #fff8df, #e1edd6); border: 3px solid white; }
+.kitchen-portrait { display: block; width: 100%; max-width: 200px; }
+.kitchen-portrait svg { display: block; width: 100%; height: auto; }
+.kitchen-chef-bubble { font-size: 13px; color: #5f755b; line-height: 1.25; padding: 3px; }
+.kitchen-counter { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 8px; background: repeating-linear-gradient(3deg, #ffffff08 0 22px, #bd905314 23px 25px), #efd5a8; border-radius: 24px; border: 3px solid #fff0d2; box-shadow: inset 0 -6px 0 #c2986029; }
+.kitchen-recipe-hint { min-height: 30px; font-size: 22px; letter-spacing: 4px; color: #8a7759; text-align: center; }
+.kitchen-plate { position: relative; width: 100%; max-width: 245px; min-height: 150px; padding: 4px; border: 0; background: transparent; touch-action: none; }
+.kitchen-plate-art { width: 100%; height: auto; display: block; }
+.kitchen-plate-drawing { display: block; }
+.kitchen-toppings { position: absolute; inset: 18% 15% 22%; pointer-events: none; }
+.kitchen-topping { position: absolute; font-size: clamp(23px, 4vw, 36px); transform: translate(-50%, -50%); filter: drop-shadow(0 2px 1px #79532d25); }
+.kitchen-topping:nth-child(1) { left: 35%; top: 30%; }
+.kitchen-topping:nth-child(2) { left: 68%; top: 35%; }
+.kitchen-topping:nth-child(3) { left: 48%; top: 60%; }
+.kitchen-topping:nth-child(4) { left: 24%; top: 68%; }
+.kitchen-topping:nth-child(5) { left: 76%; top: 68%; }
+.kitchen-recipe-hint-label { display: block; font-size: 11px; letter-spacing: 0; line-height: 1.2; margin-bottom: 3px; }
+.kitchen-recipe-hint i { font-style: normal; }
+.kitchen-oven { position: relative; }
+.kitchen-oven-food { position: absolute; width: 60%; left: 20%; top: 34%; font-size: 36px; line-height: 1; }
+.kitchen-plate-caption { display: block; font-size: 15px; color: #89673d; text-align: center; line-height: 1.2; }
+.kitchen-oven { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; padding: 10px 8px; border: 3px solid #fff; background: #e4ebdf; border-radius: 24px; min-height: 180px; }
+.kitchen-oven-art { width: 100%; max-width: 175px; height: auto; }
+.kitchen-oven-caption { font-size: 15px; color: #687961; line-height: 1.2; }
+.kitchen-oven-progress { width: 90%; height: 14px; border: 0; border-radius: 10px; overflow: hidden; background: #ccd3c5; accent-color: #d99d54; }
+.kitchen-oven-progress::-webkit-progress-bar { background: #d4dacd; border-radius: 10px; }
+.kitchen-oven-progress::-webkit-progress-value { background: #e8ad65; border-radius: 10px; transition: width .3s; }
+.kitchen-ingredients { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; padding: 12px; border: 3px solid #e5cda7; border-radius: 22px; background: #f4e4c9; box-shadow: inset 0 3px 0 #fff4e1; }
+.kitchen-ingredient { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; min-height: 85px; padding: 8px 2px; border: 3px solid #fff; background: #fffaf0; border-radius: 18px; box-shadow: 0 3px 0 #ddc49e; touch-action: none; }
+.kitchen-ingredient-emoji { font-size: 34px; line-height: 1; }
+.kitchen-ingredient > span:last-child { font-size: 13px; line-height: 1.1; }
+.kitchen-actions { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
+.kitchen-actions button { min-height: 56px; min-width: 100px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 12px; font-size: 15px; background: #fffdf7; border: 3px solid #fff; border-radius: 18px; box-shadow: 0 3px 0 #dfd2ba; }
+.kitchen-actions svg { width: 26px; height: 26px; }
+.kitchen-room[data-stage="baking"] .kitchen-oven { background: #ffd8a7; border-color: #f4bd6f; }
+.kitchen-room[data-stage="ready"] .kitchen-chef { border-color: #9eb98a; }
+.kitchen-room[data-stage="ready"] .kitchen-plate { animation: plate-ready 1.4s ease-in-out infinite; }
+.kitchen-room[data-stage="served"] .kitchen-chef { background: #e0ecd3; }
+@keyframes plate-ready { 50% { transform: translateY(-5px); } }
+@media (min-width: 650px) {
+  .pipo-room { padding: 20px; }
+  .wardrobe-studio { grid-template-columns: 1fr 1.8fr; gap: 22px; }
+  .wardrobe-outfit { min-height: 108px; }
+  .wardrobe-cabinet { padding: 18px; }
+  .wardrobe-outfit span { font-size: 15px; }
+  .wardrobe-color span { font-size: 13px; }
+  .kitchen-ingredients { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+}
+@media (max-width: 420px) {
+  .pipo-room { padding: 10px; }
+  .pipo-room-header { padding: 9px; gap: 8px; }
+  .pipo-room-header .eyebrow { font-size: 9px; letter-spacing: 1px; }
+  .wardrobe-studio { grid-template-columns: minmax(110px, .8fr) minmax(170px, 1.3fr); gap: 10px; }
+  .wardrobe-cabinet { padding: 8px; }
+  .wardrobe-outfits { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .wardrobe-outfit { min-height: 80px; }
+  .wardrobe-outfit svg { width: 43px; height: 42px; }
+  .wardrobe-colors { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .wardrobe-color { min-height: 56px; flex-direction: row; }
+  .wardrobe-mirror { min-height: 230px; border-width: 5px; }
+  .wardrobe-gifts .accessory-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .wardrobe-gifts { margin-top: 18px; }
+  .kitchen-recipe { flex-direction: column; gap: 2px; font-size: 13px; }
+  .kitchen-workspace { grid-template-columns: minmax(80px, .8fr) minmax(125px, 1.25fr) minmax(80px, .8fr); gap: 6px; }
+  .kitchen-plate { min-height: 125px; }
+  .kitchen-counter { padding: 4px; border-width: 2px; }
+  .kitchen-oven { min-height: 160px; padding: 5px; border-width: 2px; }
+  .kitchen-oven-caption, .kitchen-chef-bubble { font-size: 12px; }
+  .kitchen-plate-caption { font-size: 13px; }
+  .kitchen-ingredients { padding: 8px; gap: 7px; }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  #pipo-places { left: 10px; transform: none; width: 40%; bottom: 12px; gap: 8px; }
+  .pipo-place { min-height: 56px; font-size: 12px; gap: 4px; padding: 4px; border-radius: 17px; }
+  .pipo-place > span:first-child { font-size: 26px; }
+  .pipo-room-header { padding: 5px 10px; }
+  .pipo-room-header h2 { font-size: 22px; }
+  .pipo-room-header .eyebrow { display: none; }
+  .pipo-room { padding: 10px; }
+  .wardrobe-room { display: grid; grid-template-columns: 1fr 180px; gap: 10px; }
+  .room-guide { grid-column: 1 / -1; margin: 0; padding: 0 8px; border: 0; }
+  .wardrobe-studio { grid-template-columns: 120px 1fr; gap: 10px; }
+  .wardrobe-mirror { min-height: 190px; padding: 2px; }
+  .wardrobe-portrait { max-width: 108px; }
+  .wardrobe-reaction { font-size: 11px; }
+  .wardrobe-cabinet { padding: 8px; }
+  .wardrobe-outfits { grid-template-columns: repeat(5, minmax(56px, 1fr)); gap: 6px; margin-bottom: 8px; }
+  .wardrobe-outfit { min-height: 72px; }
+  .wardrobe-outfit svg { width: 40px; height: 40px; }
+  .wardrobe-outfit span { font-size: 10px; }
+  .wardrobe-colors { grid-template-columns: repeat(4, minmax(56px, 1fr)); }
+  .wardrobe-color { min-height: 56px; }
+  .wardrobe-gifts { margin: 0; border: 0; padding-top: 0; }
+  .wardrobe-gifts h3 { font-size: 14px; }
+  .wardrobe-gifts .accessory-grid { grid-template-columns: repeat(3, minmax(56px, 1fr)); }
+  .kitchen-room { display: grid; grid-template-columns: 1fr 268px; gap: 10px; }
+  .kitchen-recipes { grid-column: 1; margin-bottom: 0; }
+  .kitchen-recipe { min-height: 56px; padding: 4px; }
+  .kitchen-guide { grid-column: 2; margin-bottom: 0; padding: 0 6px; border: 0; }
+  .kitchen-guide p { font-size: 13px; }
+  .kitchen-step-icon { display: none; }
+  .kitchen-workspace { grid-column: 1; grid-row: 2 / span 2; margin: 0; }
+  .kitchen-portrait { max-width: 90px; }
+  .kitchen-oven { min-height: 160px; }
+  .kitchen-oven-art { max-width: 100px; }
+  .kitchen-plate { min-height: 100px; max-width: 140px; }
+  .kitchen-ingredients { grid-column: 2; grid-row: 2; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 4px; gap: 5px; }
+  .kitchen-ingredient { min-height: 56px; padding: 4px 0; border-width: 2px; }
+  .kitchen-ingredient-emoji { font-size: 26px; }
+  .kitchen-ingredient > span:last-child { font-size: 10px; }
+  .kitchen-actions { grid-column: 2; grid-row: 3; margin: 0; gap: 6px; }
+  .kitchen-actions button { min-width: 0; flex: 1; font-size: 12px; padding: 4px; }
+}
+@media (prefers-reduced-motion: reduce) { .kitchen-room[data-stage="ready"] .kitchen-plate { animation: none; } }

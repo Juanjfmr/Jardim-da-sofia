@@ -39,6 +39,8 @@ test('jornada completa: começar, cuidar, brincar, enfeitar, ajustar e salvar', 
 
     // Comer: tocar na fruta alimenta; cheio, o Pipo recusa com carinho.
     click('.dock-btn.feed');
+    assert.equal($('kitchen-sheet').hidden, false);
+    click('#kitchen-snack');
     assert.equal(game.getMode(), 'feed');
     click('[data-fruit="carrot"]');
     assert.equal(game.getState().food, 100);
@@ -166,7 +168,7 @@ test('jornada completa: começar, cuidar, brincar, enfeitar, ajustar e salvar', 
     assert.equal(game.getState().accessory, 'bow');
     acc[1].click();
     assert.equal(game.getState().accessory, 'flower');
-    click('#wardrobe-sheet .sheet-close');
+    click('#wardrobe-back');
     assert.equal($('wardrobe-sheet').hidden, true);
 
     // Cantinho da família (teclado abre direto; no toque é preciso segurar).

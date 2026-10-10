@@ -1,3 +1,5 @@
+import { OUTFITS, OUTFIT_COLORS } from './state.js';
+
 /**
  * A small, expressive, texture-free virtual bunny.
  * Front is +Z. Animate the supplied root freely; this rig only moves its children.
@@ -132,6 +134,96 @@ export function createBunny(THREE) {
     ellipsoid(head, dirtMaterial, 0.43, 0.41, 0.454, 0.085, 0.065, 0.018, true),
   ];
   dirt.forEach(mesh => { mesh.visible = false; mesh.castShadow = false; });
+
+  // Roupas ficam no torso e as mangas nos braços: acompanham todas as reações.
+  // Cada modelo é montado uma única vez e permanece no rig. O sync frequente do
+  // estado apenas alterna a visibilidade ou recolore o tecido compartilhado.
+  const clothing = new THREE.Group();
+  clothing.name = 'pipoClothes';
+  torso.add(clothing);
+  const fabric = material(OUTFIT_COLORS[0].hex);
+  const stitching = material('#fff7e6');
+  const buttonMaterial = material('#f8da85', 0.55);
+  const outfitGroups = new Map();
+  let outfitKind = 'none', outfitColor = 'mint';
+
+  function clothShell(parent, mat, top, bottom, frontOnly = false) {
+    const geometry = new THREE.SphereGeometry(1, 24, 18, 0,
+      frontOnly ? Math.PI : Math.PI * 2, top, bottom - top);
+    const mesh = new THREE.Mesh(geometry, mat);
+    mesh.scale.set(0.726, 0.802, 0.624);
+    mesh.position.z = 0.008;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    parent.add(mesh);
+    return mesh;
+  }
+  function makeOutfit(kind) {
+    const group = new THREE.Group();
+    group.name = 'outfit-' + kind;
+    clothing.add(group);
+    const sleeves = [];
+    if (kind === 'shirt' || kind === 'pajamas') {
+      clothShell(group, fabric, 0.91, kind === 'pajamas' ? 2.83 : 1.88);
+      for (const side of [-1, 1]) {
+        const sleeve = new THREE.Group();
+        sleeve.name = kind + '-sleeve';
+        arms[side === -1 ? 0 : 1].add(sleeve);
+        ellipsoid(sleeve, fabric, side * 0.022, -0.095, 0.145, 0.231, 0.207, 0.267);
+        sleeves.push(sleeve);
+      }
+      // Um bolso e botões visíveis identificam a roupa de frente.
+      if (kind === 'shirt') {
+        ellipsoid(group, stitching, 0.255, 0.095, 0.568, 0.116, 0.126, 0.063, true);
+        ellipsoid(group, fabric, 0.255, 0.12, 0.608, 0.092, 0.064, 0.029, true);
+      } else {
+        for (const y of [0.30, 0.08, -0.14]) ellipsoid(group, buttonMaterial, 0, y, 0.638, 0.036, 0.036, 0.021, true);
+        for (const [x, y] of [[-0.3, 0.04], [0.28, -0.22], [-0.18, -0.39]]) {
+          // Pequenos bordados de lua, feitos com geometrias já compartilhadas.
+          ellipsoid(group, stitching, x, y, 0.59, 0.062, 0.076, 0.03, true);
+          ellipsoid(group, fabric, x + 0.026, y + 0.024, 0.616, 0.048, 0.058, 0.013, true);
+        }
+      }
+    } else if (kind === 'overalls') {
+      clothShell(group, fabric, 1.54, 2.79);
+      ellipsoid(group, fabric, 0, 0.015, 0.563, 0.445, 0.397, 0.105);
+      for (const side of [-1, 1]) {
+        const strap = ellipsoid(group, fabric, side * 0.265, 0.335, 0.498, 0.081, 0.233, 0.09, true);
+        strap.rotation.x = -0.17;
+        ellipsoid(group, buttonMaterial, side * 0.265, 0.17, 0.645, 0.052, 0.052, 0.025, true);
+      }
+      ellipsoid(group, stitching, 0, -0.075, 0.669, 0.175, 0.143, 0.03, true);
+      ellipsoid(group, fabric, 0, -0.035, 0.69, 0.145, 0.088, 0.02, true);
+    } else if (kind === 'chef') {
+      clothShell(group, stitching, 1.13, 2.61, true);
+      // Avental claro, tiras e bolso na cor escolhida.
+      const neckLoop = ellipsoid(group, fabric, 0, 0.47, 0.40, 0.31, 0.081, 0.088, true);
+      neckLoop.rotation.x = -0.10;
+      for (const side of [-1, 1]) {
+        const tie = ellipsoid(group, fabric, side * 0.62, -0.015, 0.05, 0.084, 0.06, 0.31, true);
+        tie.rotation.y = side * 0.35;
+      }
+      ellipsoid(group, fabric, 0, -0.095, 0.648, 0.214, 0.167, 0.034, true);
+      ellipsoid(group, stitching, 0, -0.042, 0.676, 0.177, 0.039, 0.012, true);
+      ellipsoid(group, buttonMaterial, 0, 0.253, 0.621, 0.068, 0.065, 0.018, true);
+    }
+    const entry = { group, sleeves };
+    outfitGroups.set(kind, entry);
+    return entry;
+  }
+  function setOutfit(kind = 'none', color = 'mint') {
+    kind = OUTFITS.some(o => o.id === kind) ? kind : 'none';
+    color = OUTFIT_COLORS.some(c => c.id === color) ? color : 'mint';
+    if (kind === outfitKind && color === outfitColor) return;
+    if (color !== outfitColor) fabric.color.set(OUTFIT_COLORS.find(c => c.id === color).hex);
+    outfitColor = color;
+    if (kind !== 'none' && !outfitGroups.has(kind)) makeOutfit(kind);
+    for (const [id, entry] of outfitGroups) {
+      entry.group.visible = id === kind;
+      entry.sleeves.forEach(sleeve => { sleeve.visible = id === kind; });
+    }
+    outfitKind = kind;
+  }
 
   let accessory = null;
   let accessoryKind = 'none';
@@ -356,5 +448,5 @@ export function createBunny(THREE) {
   }
 
   update(0, 0);
-  return { root, head, update, react, setSleeping, setDirty, setAccessory, setLook, setMouth };
+  return { root, head, update, react, setSleeping, setDirty, setAccessory, setOutfit, setLook, setMouth };
 }

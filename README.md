@@ -10,7 +10,7 @@ Jogo de bichinho virtual para crianças de **3 a 5 anos**, feito em Three.js 0.1
 
 ## Pensado para quem ainda não lê
 
-- **Poucos botões grandes.** O menu tem só cinco botões: Comer, Banho, Brincar (estrela), Bolhas e Dormir. A estrela abre seis cartões grandes, um para cada brincadeira. No cenário, cada estação também tem um balão com ícone.
+- **Poucos botões grandes.** O menu tem cinco botões: Cozinha, Banho, Brincar (estrela), Bolhas e Dormir. O jardim também mostra os atalhos Guarda-roupa e Cozinhar. A estrela abre seis cartões grandes, um para cada brincadeira. No cenário, cada estação também tem um balão com ícone.
 - **Tudo é falado.** O Pipo explica cada brincadeira com a voz do aparelho e diz o nome das letras (“ésse”), os números e as cores. O balão de fala tem um botão para ouvir de novo.
 - **Ajuda automática.** Se a criança fica parada ou erra duas vezes, a resposta certa pulsa, uma mãozinha 👆 aponta para ela e o Pipo repete o pedido. A espera muda com o desafio (6, 9 ou 14 segundos).
 - **Errar não frustra.** A peça balança, volta para o lugar com uma mola e o Pipo diz o que ela é (“Essa é a letra ó. Procure a ésse.”).
@@ -20,7 +20,9 @@ Jogo de bichinho virtual para crianças de **3 a 5 anos**, feito em Three.js 0.1
 ## Brincadeiras
 
 - **Carinho:** o Pipo segue o dedo com o olhar e “amassa” no toque. Vários toques seguidos fazem risadinha e, depois, um giro.
-- **Comer:** arraste a fruta até a boca do Pipo (ele abre a boca quando ela chega perto) ou só toque nela. Quando está cheio, ele recusa com carinho.
+- **Guarda-roupa:** vista uma jardineira, camiseta, pijama ou avental; escolha entre quatro cores e veja o Pipo inteiro no espelho. Toque na roupa ou arraste até ele. Todas as roupinhas estão disponíveis desde o começo; enfeites continuam sendo presentes das brincadeiras. Roupa e cor ficam salvas e aparecem no Pipo em 3D no jardim.
+- **Cozinha:** escolha pizza, bolo de banana ou legumes assados, misture até cinco ingredientes livremente, leve o prato ao forno de faz de conta e sirva ao Pipo. Ingredientes e prato funcionam por toque ou arrasto. O forno leva quatro segundos, mostra o progresso e transforma a comida crua em assada. Pipo come e comemora; cada prato servido dá uma flor, mesmo se ele já estiver cheio. Tirar o último ingrediente, limpar e escolher outra receita permitem inventar de novo.
+- **Fruta pronta:** na cozinha, o botão da maçã abre o lanche rápido. Arraste a fruta até a boca do Pipo (ele abre a boca quando ela chega perto) ou só toque nela. Quando está cheio, ele recusa com carinho.
 - **Banho:** passe o dedo no Pipo para fazer espuma, que gruda no pelo, e toque no chuveiro para enxaguar.
 - **Bolhas:** bolhas grandes sobem pela tela; estoure cinco.
 - **Dormir:** a noite tem lua, estrelas, vaga-lumes, janela acesa e canção de ninar.
@@ -32,6 +34,8 @@ Jogo de bichinho virtual para crianças de **3 a 5 anos**, feito em Three.js 0.1
 - **Plantar:** quatro canteiros que guardam o progresso: semente, broto, crescimento e flor.
 
 Prévia de Formas: [caixa de encaixes no celular](docs/previews/formas-celular.jpg) e [brinquedo pronto no celular deitado](docs/previews/formas-concluidas-paisagem.jpg).
+
+Prévias das novas brincadeiras: [guarda-roupa](docs/previews/pipo-guarda-roupa.jpg), [cozinha](docs/previews/pipo-cozinha-paisagem.jpg) e [Pipo vestido no jardim](docs/previews/pipo-jardim.jpg).
 
 ## Cantinho da família
 
@@ -61,7 +65,7 @@ npm run build
 npm test
 ```
 
-`npm test` reconstrói `dist` e executa 29 testes: estado, a jornada completa da interface em DOM simulado, demonstração e encaixes de Formas, a escolha de voz (com listas de vozes de iPhone, Android e computador), geometria do Pipo e o enquadramento 3D em sete tamanhos de tela. Os testes de DOM não renderizam WebGL; o visual foi conferido em Chromium real, em celular, celular deitado, tablet e computador.
+`npm test` reconstrói `dist` e executa 44 testes: estado, jornada da interface, Formas, vozes, roupas 3D, cozinha por toque e arrasto, persistência, cancelamento de callbacks ao sair do forno e enquadramento do jardim. Os testes de DOM não renderizam WebGL; cozinha e guarda-roupa foram conferidos no navegador em 375×667, 390×844, 844×390 e 820×1180, com alvos de toque de pelo menos 56px e sem rolagem horizontal.
 
 Para jogar localmente, sirva `dist` por HTTP (o jogo usa módulos JavaScript, então `file://` não funciona):
 
