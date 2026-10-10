@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#cfe9f2">
+  <meta name="description" content="Um jardim para brincar, aprender e cuidar do coelhinho Pipo. Para crianças de 3 a 5 anos.">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Jardim">
+  <meta name="format-detection" content="telephone=no">
+  <title>Jardim da Sofia · Pipo e você</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="preload" href="./fonts/fredoka-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <button id="flower-count" class="chip" type="button" aria-label="Enfeites do Pipo"><span class="chip-flower" aria-hidden="true">🌸</span><span id="flower-number">0</span></button>
+    <h1 id="title">Jardim da <em>Sofia</em></h1>
+    <button id="parent-btn" class="round-btn hold-btn" type="button" aria-label="Cantinho da família: um adulto segura por 2 segundos"><span class="hold-ring" aria-hidden="true"></span></button>
+  </header>
+
+  <main id="stage">
+    <canvas id="world" aria-label="Jardim 3D do coelhinho Pipo. Toque no coelhinho para dar carinho."></canvas>
+    <div id="webgl-fallback" hidden><div class="fallback-pipo"></div><p>O 3D não está disponível neste aparelho.<br>As brincadeiras continuam nos botões.</p></div>
+    <div id="station-labels"></div>
+    <button id="need-bubble" type="button" hidden></button>
+    <div class="speech" id="speech">
+      <div class="speech-avatar" id="speech-avatar"></div>
+      <p id="prompt-text">Que bom ter você aqui!</p>
+      <button id="repeat-prompt" class="round-btn" type="button" aria-label="Ouvir de novo"></button>
+    </div>
+    <div id="mode-tools" hidden></div>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <div id="particle-layer" aria-hidden="true"></div>
+  </main>
+
+  <nav class="dock" id="dock" aria-label="Cuidados e brincadeiras"></nav>
+</div>
+
+<div id="welcome" class="veil welcome-veil">
+  <section class="welcome-card">
+    <div class="welcome-pipo" id="welcome-pipo"></div>
+    <h2 id="welcome-title">Oi, <em>Sofia!</em></h2>
+    <p>O Pipo quer brincar com você.</p>
+    <button id="start-btn" class="play-btn" type="button" aria-label="Vamos brincar"><span class="play-icon"></span></button>
+    <small>Toque no botão para começar. Use o som ligado.</small>
+  </section>
+</div>
+
+<div id="games-sheet" class="veil sheet-veil" hidden>
+  <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="games-title">
+    <header class="sheet-header"><h2 id="games-title">Brincadeiras</h2><button class="round-btn sheet-close" type="button" data-close="games-sheet" aria-label="Fechar"></button></header>
+    <div id="games-grid" class="games-grid"></div>
+  </section>
+</div>
+
+<div id="wardrobe-sheet" class="veil sheet-veil" hidden>
+  <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="wardrobe-title">
+    <header class="sheet-header"><h2 id="wardrobe-title">Enfeites do Pipo</h2><button class="round-btn sheet-close" type="button" data-close="wardrobe-sheet" aria-label="Fechar"></button></header>
+    <div id="wardrobe-progress" class="wardrobe-progress"></div>
+    <div id="accessory-options" class="accessory-grid"></div>
+  </section>
+</div>
+
+<div id="activity-modal" class="veil activity-veil" hidden>
+  <section class="activity-card" role="dialog" aria-modal="true" aria-labelledby="activity-title">
+    <header class="activity-header">
+      <button id="activity-close" class="round-btn home-btn" type="button" aria-label="Voltar ao jardim"></button>
+      <div class="activity-heading"><span id="activity-tag" class="eyebrow"></span><h2 id="activity-title"></h2></div>
+      <button id="activity-voice" class="round-btn" type="button" aria-label="Ouvir a brincadeira"></button>
+    </header>
+    <div class="instruction"><div class="instruction-avatar" id="instruction-avatar"></div><p id="activity-instruction"></p></div>
+    <div id="activity-body"></div>
+    <div id="activity-footer"></div>
+  </section>
+</div>
+
+<div id="parent-modal" class="veil" hidden>
+  <section class="parent-card" role="dialog" aria-modal="true" aria-labelledby="parent-title">
+    <header><div><span class="eyebrow">CANTINHO DA FAMÍLIA</span><h2 id="parent-title">Ajustes do jardim</h2></div><button id="parent-close" class="round-btn" type="button" aria-label="Fechar ajustes"></button></header>
+    <h3>Nome da criança</h3>
+    <div class="name-row">
+      <select id="article-setting" aria-label="Artigo do nome"><option value="da">Jardim da</option><option value="do">Jardim do</option><option value="de">Jardim de</option></select>
+      <input id="name-setting" type="text" maxlength="16" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="Nome" aria-label="Nome da criança">
+    </div>
+    <p class="setting-help">O Pipo chama a criança por este nome. Deixe vazio para ele dizer só “você”.</p>
+    <h3>Desafio</h3>
+    <div id="difficulty-options"></div>
+    <h3>Som</h3>
+    <label class="setting-row">Voz do Pipo <input id="voice-setting" type="checkbox" checked></label>
+    <label class="setting-row">Efeitos sonoros e vibração <input id="sound-setting" type="checkbox" checked></label>
+    <label class="setting-row">Música de fundo <input id="music-setting" type="checkbox" checked></label>
+    <h3>Tela</h3>
+    <label class="setting-row">Tela cheia ao começar <input id="fullscreen-setting" type="checkbox" checked></label>
+    <div class="setting-row column">Tempo de brincadeira por dia<div id="limit-options" class="segmented"></div></div>
+    <div class="parent-note" id="parent-note">O jardim fica salvo neste aparelho. O Pipo descansa quando o jogo fecha e nunca fica doente. Sem anúncios e sem compras.</div>
+    <button id="parent-done" class="big-btn" type="button">Voltar a brincar</button>
+  </section>
+</div>
+
+<div id="rest-screen" class="veil rest-veil" hidden>
+  <section class="rest-card">
+    <div class="rest-pipo" id="rest-pipo"></div>
+    <h2>Hora de descansar</h2>
+    <p id="rest-text">O Pipo ficou com soninho. Vamos brincar de novo amanhã?</p>
+    <button id="rest-unlock" class="hold-btn wide-hold" type="button" aria-label="Um adulto segura por 2 segundos para continuar"><span class="hold-ring" aria-hidden="true"></span><span>Adulto: segure para continuar</span></button>
+  </section>
+</div>
+
+<div id="hint-hand" aria-hidden="true" hidden>👆</div>
+<div id="confetti-layer" aria-hidden="true"></div>
+<noscript>Ative o JavaScript para brincar no Jardim.</noscript>
+<script type="module" src="./game.js"></script>
+</body>
+</html>

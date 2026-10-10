@@ -1,0 +1,19 @@
+{
+  "name": "Jardim da Sofia",
+  "short_name": "Jardim",
+  "description": "Um jardim para brincar, aprender e cuidar do coelhinho Pipo. Para crianças de 3 a 5 anos.",
+  "lang": "pt-BR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
+  "background_color": "#cfe9f2",
+  "theme_color": "#cfe9f2",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
