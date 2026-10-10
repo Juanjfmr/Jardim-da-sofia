@@ -945,3 +945,350 @@ h1, h2, h3 { font-weight: 600; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* ---------- A caixa de encaixes do Pipo ---------- */
+/* Escopo da oficina: as outras cinco brincadeiras mantêm seus próprios layouts. */
+#activity-modal[data-activity="shapes"] .activity-card {
+  width: min(740px, 100%);
+  height: auto;
+  max-height: 100%;
+  background: linear-gradient(180deg, #edf5df 0, #fffaf0 180px, #fffdf7 100%);
+}
+#activity-modal[data-activity="shapes"] .activity-header,
+#activity-modal[data-activity="shapes"] .instruction,
+#activity-modal[data-activity="shapes"] #activity-footer { flex-shrink: 0; }
+#activity-modal[data-activity="shapes"] #activity-body {
+  flex: 0 1 auto;
+  justify-content: flex-start;
+  padding: 10px 16px 18px;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #c9ba96 transparent;
+}
+#activity-modal[data-activity="shapes"] .shape-workshop {
+  position: relative;
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+#activity-modal[data-activity="shapes"] .shape-story {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+#activity-modal[data-activity="shapes"] .shape-friend {
+  width: 128px;
+  height: 160px;
+  justify-self: center;
+  pointer-events: none;
+}
+#activity-modal[data-activity="shapes"] .shape-pipo-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+#activity-modal[data-activity="shapes"] .shape-pipo-happy-eyes { display: none; }
+#activity-modal[data-activity="shapes"] .shape-pipo-head {
+  transform-origin: 80px 110px;
+  transition: transform .35s ease;
+}
+#activity-modal[data-activity="shapes"] .shape-pipo-arm-right {
+  transform-origin: 111px 122px;
+  transition: transform .4s var(--spring);
+}
+#activity-modal[data-activity="shapes"] .shape-friend[data-mood="demo"] .shape-pipo-arm-right { transform: rotate(-58deg); }
+#activity-modal[data-activity="shapes"] .shape-friend[data-mood="demo"] .shape-pipo-head { transform: rotate(5deg); }
+#activity-modal[data-activity="shapes"] .shape-friend[data-mood="thinking"] .shape-pipo-head { transform: rotate(-8deg); }
+#activity-modal[data-activity="shapes"] .shape-friend[data-mood="happy"] .shape-pipo-eyes { display: none; }
+#activity-modal[data-activity="shapes"] .shape-friend[data-mood="happy"] .shape-pipo-happy-eyes { display: block; }
+#activity-modal[data-activity="shapes"] .shape-friend[data-mood="happy"] .shape-pipo-body {
+  transform-origin: 80px 194px;
+  animation: shape-pipo-hop .6s var(--spring) 2;
+}
+#activity-modal[data-activity="shapes"] .shape-story-bubble {
+  position: relative;
+  padding: 14px 16px 12px;
+  border: 2px solid #eadfbd;
+  border-radius: 24px 24px 24px 8px;
+  background: #fffdf6;
+  box-shadow: 0 4px 0 #f0ead6;
+}
+#activity-modal[data-activity="shapes"] .shape-story-bubble::before {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 28px;
+  width: 14px;
+  height: 14px;
+  background: #fffdf6;
+  border-left: 2px solid #eadfbd;
+  border-bottom: 2px solid #eadfbd;
+  transform: rotate(45deg);
+}
+#activity-modal[data-activity="shapes"] .shape-story-text {
+  color: #59704e;
+  font-size: 20px;
+  line-height: 1.3;
+  font-weight: 500;
+}
+#activity-modal[data-activity="shapes"] .shape-demo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 56px;
+  min-height: 56px;
+  margin-top: 9px;
+  padding: 8px 13px;
+  background: #e4efd4;
+  color: #466d41;
+  border: 2px solid #fff;
+  border-radius: 18px;
+  box-shadow: inset 0 -3px 0 #d4e4c1;
+  font-size: 16px;
+  font-weight: 600;
+}
+#activity-modal[data-activity="shapes"] .shape-demo-btn svg { width: 28px; height: 28px; }
+#activity-modal[data-activity="shapes"] .shape-demo-btn svg path { fill: #567f43; }
+#activity-modal[data-activity="shapes"] .shape-demo-btn:disabled { opacity: .65; }
+#activity-modal[data-activity="shapes"] .shape-board {
+  position: relative;
+  padding: 13px 15px 18px;
+  background: repeating-linear-gradient(3deg, transparent 0 26px, rgba(155, 105, 56, .04) 27px 29px, transparent 30px 66px), linear-gradient(150deg, #f7dfb6, #ecc58f);
+  border: 3px solid #ffedcd;
+  border-bottom: 8px solid #d8aa76;
+  border-radius: 25px 29px 26px 30px;
+  box-shadow: 0 7px 0 #f0e4ce, inset 0 2px 0 #fff2dc, 0 10px 18px rgba(125, 87, 45, .1);
+}
+#activity-modal[data-activity="shapes"] .shape-board-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  color: #856441;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: .2px;
+}
+#activity-modal[data-activity="shapes"] .shape-board-label svg { width: 24px; height: 24px; }
+#activity-modal[data-activity="shapes"] .shape-board-slots {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 110px));
+  justify-content: center;
+  gap: 14px;
+}
+#activity-modal[data-activity="shapes"] .shape-board-slots:has(.shape-slot:nth-child(4)):not(:has(.shape-slot:nth-child(5))),
+#activity-modal[data-activity="shapes"] .shape-board-slots[data-count="4"] { grid-template-columns: repeat(2, minmax(0, 104px)); }
+#activity-modal[data-activity="shapes"] .shape-slot {
+  position: relative;
+  min-width: 0;
+  aspect-ratio: 1;
+  padding: 6px;
+  border: 3px solid transparent;
+  border-radius: 21px;
+  background: rgba(253, 239, 212, .42);
+  box-shadow: inset 0 2px 3px rgba(148, 98, 47, .12);
+  transition: border-color .25s, background .25s, box-shadow .25s;
+}
+#activity-modal[data-activity="shapes"] .shape-target {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+#activity-modal[data-activity="shapes"] .shape-slot:not(.is-filled) .shape-target svg {
+  fill: #dcb98a;
+  stroke: #ae8254;
+  stroke-width: 4;
+  stroke-dasharray: none;
+  filter: drop-shadow(0 2px 0 #ffebc8);
+}
+#activity-modal[data-activity="shapes"] .shape-slot.is-current {
+  background: #fff8df;
+  border-color: #79a665;
+  box-shadow: 0 0 0 3px #fff8e7, 0 4px 0 rgba(149, 109, 61, .14);
+}
+#activity-modal[data-activity="shapes"] .shape-slot.is-current::after {
+  content: "↓";
+  position: absolute;
+  top: -14px;
+  right: -7px;
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  border: 2px solid #fffaf0;
+  border-radius: 50%;
+  background: #709f5a;
+  color: #fff;
+  font-size: 19px;
+  line-height: 1;
+}
+#activity-modal[data-activity="shapes"] .shape-slot.is-filled { background: rgba(255, 248, 224, .68); }
+#activity-modal[data-activity="shapes"] .shape-slot.is-filled .shape-target svg { filter: drop-shadow(0 3px 0 rgba(133, 83, 36, .2)); }
+#activity-modal[data-activity="shapes"] .shape-slot.just-filled .shape-target { animation: shape-piece-fit .5s var(--spring); }
+#activity-modal[data-activity="shapes"] .shape-tray {
+  padding: 12px;
+  border: 2px solid #e8deca;
+  border-radius: 24px;
+  background: #f4f0e2;
+  box-shadow: inset 0 3px 0 rgba(162, 147, 115, .08);
+}
+#activity-modal[data-activity="shapes"] .shape-choices { gap: 10px; }
+#activity-modal[data-activity="shapes"] .shape-btn,
+#activity-modal[data-activity="shapes"] .shape-choices.many .shape-btn {
+  width: 88px;
+  height: 88px;
+  padding: 10px;
+  background: #fffaf0;
+  border: 3px solid #fff;
+  border-bottom: 6px solid #e4d6bd;
+  border-radius: 21px;
+  box-shadow: 0 3px 6px rgba(119, 93, 52, .09);
+}
+#activity-modal[data-activity="shapes"] .shape-btn svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 3px 0 rgba(139, 101, 63, .14));
+}
+#activity-modal[data-activity="shapes"] .shape-btn.used { opacity: .22; box-shadow: none; }
+#activity-modal[data-activity="shapes"] .shape-demo-piece {
+  position: absolute;
+  z-index: 5;
+  width: 72px;
+  height: 72px;
+  pointer-events: none;
+  animation: shape-demo-slide 1.6s cubic-bezier(.35, 0, .25, 1) both;
+  filter: drop-shadow(0 5px 3px rgba(109, 78, 37, .22));
+}
+#activity-modal[data-activity="shapes"] .shape-demo-piece svg { width: 100%; height: 100%; }
+#activity-modal[data-activity="shapes"] .shape-demo-hand {
+  position: absolute;
+  z-index: 6;
+  width: 38px;
+  height: 38px;
+  pointer-events: none;
+  font-size: 34px;
+  animation: shape-demo-slide 1.6s cubic-bezier(.35, 0, .25, 1) both;
+}
+#activity-modal[data-activity="shapes"] .is-demonstrating .shape-tray { background: #f2eedc; }
+#activity-modal[data-activity="shapes"] .shape-finish { text-align: center; color: #53734b; }
+#activity-modal[data-activity="shapes"] .shape-finish h3 { font-size: 24px; line-height: 1.2; }
+#activity-modal[data-activity="shapes"] .shape-finish p { margin-top: 5px; font-size: 17px; line-height: 1.35; }
+#activity-modal[data-activity="shapes"] .shape-finish .earned-flower { margin-top: 9px; padding: 7px 16px; font-size: 20px; }
+#activity-modal[data-activity="shapes"] .is-complete .shape-board { border-color: #fff0cd; box-shadow: 0 7px 0 #e2ecca, inset 0 2px 0 #fff4df; }
+#activity-modal[data-activity="shapes"] .is-complete .shape-tray { display: none; }
+#activity-modal[data-activity="shapes"] #activity-footer { padding-top: 8px; gap: 24px; }
+
+@keyframes shape-piece-fit {
+  0% { transform: translateY(-10px) scale(1.13); }
+  65% { transform: translateY(2px) scale(.96); }
+  100% { transform: translateY(0) scale(1); }
+}
+@keyframes shape-pipo-hop {
+  35% { transform: translateY(-10px) rotate(-3deg); }
+  65% { transform: translateY(0) scale(1.03, .97); }
+}
+@keyframes shape-demo-slide {
+  0%, 12% { transform: translate(0, 0) rotate(-7deg) scale(1); }
+  70%, 92% { transform: translate(var(--demo-x, 0px), var(--demo-y, 0px)) rotate(0) scale(.91); opacity: 1; }
+  100% { transform: translate(var(--demo-x, 0px), var(--demo-y, 0px)) scale(.91); opacity: 0; }
+}
+
+@media (max-width: 420px) {
+  #activity-modal[data-activity="shapes"] #activity-body { padding: 6px 10px 15px; }
+  #activity-modal[data-activity="shapes"] .shape-workshop { gap: 12px; }
+  #activity-modal[data-activity="shapes"] .shape-story { grid-template-columns: 120px minmax(0, 1fr); gap: 5px; }
+  #activity-modal[data-activity="shapes"] .shape-friend { width: 120px; height: 148px; }
+  #activity-modal[data-activity="shapes"] .shape-story-bubble { padding: 11px 10px 10px; }
+  #activity-modal[data-activity="shapes"] .shape-story-text { font-size: 18px; }
+  #activity-modal[data-activity="shapes"] .shape-demo-btn { padding: 8px; font-size: 15px; gap: 5px; }
+  #activity-modal[data-activity="shapes"] .shape-board { padding: 12px 10px 14px; }
+  #activity-modal[data-activity="shapes"] .shape-board-slots { gap: 10px; }
+  #activity-modal[data-activity="shapes"] .shape-slot { padding: 5px; border-radius: 18px; }
+  #activity-modal[data-activity="shapes"] .shape-btn,
+  #activity-modal[data-activity="shapes"] .shape-choices.many .shape-btn { width: 80px; height: 80px; padding: 8px; }
+  #activity-modal[data-activity="shapes"] .shape-tray { padding: 10px 8px; }
+  #activity-modal[data-activity="shapes"] .shape-choices { gap: 8px; }
+}
+
+@media (max-height: 700px) and (orientation: portrait) {
+  #activity-modal[data-activity="shapes"] .shape-story { grid-template-columns: 96px minmax(0, 1fr); }
+  #activity-modal[data-activity="shapes"] .shape-friend { width: 92px; height: 112px; }
+  #activity-modal[data-activity="shapes"] .shape-story-text { font-size: 17px; }
+  #activity-modal[data-activity="shapes"] .shape-board-slots { grid-template-columns: repeat(3, minmax(0, 80px)); }
+  #activity-modal[data-activity="shapes"] .shape-board-slots:has(.shape-slot:nth-child(4)):not(:has(.shape-slot:nth-child(5))),
+  #activity-modal[data-activity="shapes"] .shape-board-slots[data-count="4"] { grid-template-columns: repeat(2, minmax(0, 80px)); }
+  #activity-modal[data-activity="shapes"] .shape-choices.many { gap: 6px; }
+  #activity-modal[data-activity="shapes"] .shape-choices.many .shape-btn { width: 56px; height: 56px; padding: 5px; border-bottom-width: 4px; border-radius: 16px; }
+  #activity-modal[data-activity="shapes"] .shape-workshop.is-complete { gap: 6px; }
+  #activity-modal[data-activity="shapes"] .is-complete .shape-friend { width: 72px; height: 88px; }
+  #activity-modal[data-activity="shapes"] .is-complete .shape-board-slots { grid-template-columns: repeat(3, minmax(0, 70px)); }
+  #activity-modal[data-activity="shapes"] .is-complete .shape-board-slots[data-count="4"] { grid-template-columns: repeat(2, minmax(0, 70px)); }
+  #activity-modal[data-activity="shapes"] .shape-finish { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+  #activity-modal[data-activity="shapes"] .shape-finish h3 { font-size: 20px; }
+  #activity-modal[data-activity="shapes"] .shape-finish .earned-flower { margin-top: 0; padding: 5px 10px; font-size: 17px; }
+  #activity-modal[data-activity="shapes"] .big-round { width: 80px; height: 80px; }
+}
+
+/* Pipo, caixa e peças ficam lado a lado para arrastar sem precisar rolar. */
+@media (max-height: 520px) and (orientation: landscape) {
+  #activity-modal[data-activity="shapes"] { padding: 8px; }
+  #activity-modal[data-activity="shapes"] .activity-card { width: min(960px, 100%); }
+  #activity-modal[data-activity="shapes"] .activity-header .round-btn { width: 56px; height: 56px; }
+  #activity-modal[data-activity="shapes"] .instruction { margin-top: 0; }
+  #activity-modal[data-activity="shapes"] #activity-body { padding: 8px 12px 14px; }
+  #activity-modal[data-activity="shapes"] .shape-workshop { display: grid; grid-template-columns: 130px minmax(0, 1fr) 148px; max-width: 760px; gap: 12px; align-items: start; }
+  #activity-modal[data-activity="shapes"] .shape-story { grid-template-columns: 1fr; gap: 0; align-self: center; }
+  #activity-modal[data-activity="shapes"] .shape-friend { width: 80px; height: 100px; }
+  #activity-modal[data-activity="shapes"] .shape-story-bubble { padding: 9px; text-align: center; border-radius: 20px; }
+  #activity-modal[data-activity="shapes"] .shape-story-bubble::before { display: none; }
+  #activity-modal[data-activity="shapes"] .shape-story-text { font-size: 15px; }
+  #activity-modal[data-activity="shapes"] .shape-demo-btn { margin-top: 5px; }
+  #activity-modal[data-activity="shapes"] .shape-board { padding: 9px 12px 13px; }
+  #activity-modal[data-activity="shapes"] .shape-board-label { margin-bottom: 8px; }
+  #activity-modal[data-activity="shapes"] .shape-board-slots { grid-template-columns: repeat(3, minmax(0, 80px)); gap: 8px; }
+  #activity-modal[data-activity="shapes"] .shape-board-slots:has(.shape-slot:nth-child(4)):not(:has(.shape-slot:nth-child(5))),
+  #activity-modal[data-activity="shapes"] .shape-board-slots[data-count="4"] { grid-template-columns: repeat(2, minmax(0, 80px)); }
+  #activity-modal[data-activity="shapes"] .shape-tray { padding: 8px; }
+  #activity-modal[data-activity="shapes"] .shape-choices { display: grid; grid-template-columns: repeat(2, 60px); gap: 8px; }
+  #activity-modal[data-activity="shapes"] .shape-btn,
+  #activity-modal[data-activity="shapes"] .shape-choices.many .shape-btn { width: 60px; height: 60px; padding: 5px; }
+  #activity-modal[data-activity="shapes"] .shape-workshop.is-complete { grid-template-columns: 130px minmax(0, 1fr); }
+  #activity-modal[data-activity="shapes"] .shape-finish { grid-column: 2; }
+  #activity-modal[data-activity="shapes"] #activity-footer { padding-top: 4px; padding-bottom: 8px; }
+  #activity-modal[data-activity="shapes"] .big-round { width: 76px; height: 76px; animation: none; }
+  #activity-modal[data-activity="shapes"]:has(.shape-finish) .instruction { display: none; }
+  #activity-modal[data-activity="shapes"] #activity-body:has(.shape-finish) { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 8px 12px; align-content: center; }
+  #activity-modal[data-activity="shapes"] .shape-workshop.is-complete { display: contents; }
+  #activity-modal[data-activity="shapes"] .is-complete .shape-story { grid-column: 1; grid-row: 1 / span 2; }
+  #activity-modal[data-activity="shapes"] .is-complete .shape-board { grid-column: 2; grid-row: 1; }
+  #activity-modal[data-activity="shapes"] .is-complete .shape-board-slots { grid-template-columns: repeat(3, minmax(0, 72px)); }
+  #activity-modal[data-activity="shapes"] .is-complete .shape-board-slots[data-count="4"] { grid-template-columns: repeat(4, minmax(0, 72px)); }
+  #activity-modal[data-activity="shapes"] .is-complete .shape-board-slots[data-count="5"] { grid-template-columns: repeat(5, minmax(0, 72px)); }
+  #activity-modal[data-activity="shapes"] .shape-finish { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+  #activity-modal[data-activity="shapes"] .shape-finish h3 { font-size: 20px; }
+  #activity-modal[data-activity="shapes"] .shape-finish .earned-flower { margin-top: 0; padding: 5px 10px; font-size: 17px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #activity-modal[data-activity="shapes"] .shape-pipo-body,
+  #activity-modal[data-activity="shapes"] .shape-target,
+  #activity-modal[data-activity="shapes"] .earned-flower { animation: none; }
+  #activity-modal[data-activity="shapes"] .shape-demo-piece,
+  #activity-modal[data-activity="shapes"] .shape-demo-hand {
+    animation: none;
+    transform: translate(var(--demo-x, 0px), var(--demo-y, 0px));
+  }
+}

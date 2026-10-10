@@ -9,7 +9,7 @@ Requer Node.js 20 ou posterior.
 ```sh
 npm ci
 npm run build   # gera dist/ (copia src, Three.js, fonte Fredoka e monta o service worker)
-npm test        # reconstrói dist e roda os 18 testes
+npm test        # reconstrói dist e roda os 26 testes
 python3 -m http.server 8080 --directory dist
 ```
 
@@ -27,7 +27,7 @@ Não abra `index.html` por `file://`: o jogo usa módulos JavaScript. `dist/` n�
 - `src/icons.js`: ícones SVG e o rosto do Pipo (`pipoFace`).
 - `src/index.html`, `src/style.css`: estrutura e visual. Fonte Fredoka local; modo noturno; layouts para celular, paisagem e tablet.
 - `src/manifest.webmanifest`, `src/sw.js`, `src/icons/`, `src/favicon.svg`: PWA. O build preenche a versão e a lista de arquivos do service worker.
-- `tests/`: `state.test.mjs` (regras), `ui.test.mjs` (jornada completa em linkedom, sem WebGL) e `world.test.mjs` (Pipo, bolhas e enquadramento).
+- `tests/`: `state.test.mjs` (regras), `ui.test.mjs` (jornada completa em linkedom, sem WebGL), `forms.test.mjs` (demonstração, encaixes e callbacks de rodadas antigas) e `world.test.mjs` (Pipo, bolhas e enquadramento).
 
 ## Princípios de design (mantenha ao mudar)
 
@@ -41,7 +41,7 @@ Não abra `index.html` por `file://`: o jogo usa módulos JavaScript. `dist/` n�
 
 ## Validação
 
-Os 18 testes passam. O visual e as interações foram conferidos em Chromium real (Playwright, WebGL por SwiftShader) em 390×844, 375×667, 844×390, 820×1180, 1180×820 e 1280×720. Foram testados: arrastar fruta até a boca, arrastar letra, mola ao soltar fora, estourar bolhas no 3D, banho completo, dica automática, portão dos adultos e tela de descanso. A voz depende do aparelho; teste num celular real com som ligado.
+Os 26 testes passam. O visual e as interações foram conferidos em Chromium real (Playwright, WebGL por SwiftShader) em 390×844, 375×667, 844×390, 820×1180, 1180×820 e 1280×720. Foram testados: arrastar fruta até a boca, arrastar letra, mola ao soltar fora, estourar bolhas no 3D, banho completo, dica automática, portão dos adultos e tela de descanso. Formas também tem testes de demonstração, tabuleiro persistente, níveis e recompensa única. A voz depende do aparelho; teste num celular real com som ligado.
 
 ## Publicação
 
