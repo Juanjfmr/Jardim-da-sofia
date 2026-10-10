@@ -171,16 +171,18 @@ function updateInsets() {
   const stage = $('stage').getBoundingClientRect();
   const speech = $('speech').getBoundingClientRect();
   const tools = $('mode-tools');
-  let bottom = 0;
-  if (!$('pipo-places').hidden) bottom = Math.max(0, stage.bottom - $('pipo-places').getBoundingClientRect().top);
-  if (!tools.hidden) {
-    const r = tools.getBoundingClientRect();
-    bottom = Math.max(0, stage.bottom - r.top);
+  let placesBottom = 0, placesRight = 0, toolsBottom = 0;
+  if (!$('pipo-places').hidden) {
+    const p = $('pipo-places').getBoundingClientRect();
+    placesBottom = Math.max(0, stage.bottom - p.top);
+    placesRight = Math.max(0, p.right - stage.left);
   }
-  // Celular deitado: o balão fica no canto esquerdo e o jardim se afasta para a direita dele.
+  if (!tools.hidden) toolsBottom = Math.max(0, stage.bottom - tools.getBoundingClientRect().top);
+  // Celular deitado: o balão e os atalhos ficam na coluna da esquerda; o jardim usa
+  // toda a altura à direita deles, em vez de encolher por causa dos atalhos.
   const sideBubble = stage.width > stage.height * 1.3 && speech.width < stage.width * 0.5 && speech.left - stage.left < 60;
-  if (sideBubble) world.setInsets({ top: 0, bottom, left: Math.max(0, speech.right - stage.left) });
-  else world.setInsets({ top: Math.max(0, speech.bottom - stage.top), bottom });
+  if (sideBubble) world.setInsets({ top: 0, bottom: toolsBottom, left: Math.max(0, speech.right - stage.left, placesRight) });
+  else world.setInsets({ top: Math.max(0, speech.bottom - stage.top), bottom: Math.max(placesBottom, toolsBottom) });
 }
 
 // ---------------------------------------------------------------------------

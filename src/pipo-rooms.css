@@ -9,6 +9,8 @@
   color: #536859; font-size: 16px; font-weight: 600; box-shadow: 0 6px 0 #afc7b184, 0 9px 18px #42664515;
 }
 .pipo-place > span:first-child { font-size: 32px; }
+.pipo-place > span:last-child { white-space: nowrap; }
+@media (max-width: 400px) { .pipo-place { gap: 6px; font-size: 15px; } }
 .clothes-place { background: #eadffa; }
 .kitchen-place { background: #ffe2af; }
 .pipo-room-veil { background: #47604475; padding: max(8px, var(--safe-top)) max(8px, var(--safe-right)) max(8px, var(--safe-bottom)) max(8px, var(--safe-left)); }
