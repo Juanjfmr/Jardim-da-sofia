@@ -2,6 +2,7 @@
 // com o jogo só pelo `ctx` (estado, voz, reações do Pipo, dicas e comemoração).
 import { icon } from './icons.js';
 import { installDrag, makeButton } from './ui.js';
+import { shapeFriendSVG } from './shape-friend.js';
 import {
   wordsFor, letterRound, pickLetter, countingRound, pickCarrot,
   colorRounds, shapesForLevel, SHAPE_NAMES, shuffle,
@@ -241,63 +242,184 @@ export function createActivities(ctx) {
   }
 
   // ---------- Formas ----------
+  let shapesIntroduced = false;
   function shapes(cur) {
     cur.shapes = shapesForLevel(level());
     cur.order = shuffle(cur.shapes);
     cur.index = 0;
+    cur.placed = [];
+    cur.demoToken = 0;
+    ctx.body().innerHTML = '';
     drawShapes(cur);
+    if (!shapesIntroduced && !ctx.state().completed.shapes) demonstrateShape(cur);
+    shapesIntroduced = true;
   }
   const shapeLabel = shape => SHAPE_NAMES[shape].article + ' ' + SHAPE_NAMES[shape].name;
+  const shapeColor = shape => SHAPE_COLORS[Object.keys(SHAPE_NAMES).indexOf(shape)];
+  function shapeMood(mood) {
+    const friend = ctx.body().querySelector('.shape-friend');
+    if (friend) friend.dataset.mood = mood;
+  }
+  function finishShapeDemo(cur, token) {
+    if (!alive(cur) || cur.demoToken !== token) return;
+    cur.demonstrating = false;
+    cur.demoToken++;
+    ctx.body().querySelector('.shape-demo-piece')?.remove();
+    ctx.body().querySelector('.shape-demo-hand')?.remove();
+    drawShapes(cur);
+  }
+  function demonstrateShape(cur) {
+    if (!alive(cur) || cur.busy || cur.index >= cur.order.length) return;
+    if (cur.demonstrating) { finishShapeDemo(cur, cur.demoToken); return; }
+    ctx.coach.clear();
+    cur.demonstrating = true;
+    const token = ++cur.demoToken;
+    const target = cur.order[cur.index];
+    const body = ctx.body();
+    const workshop = body.querySelector('.shape-workshop');
+    const button = body.querySelector('.shape-btn[data-shape="' + target + '"]');
+    const slot = body.querySelector('.shape-slot.is-current');
+    workshop.classList.add('is-demonstrating');
+    body.querySelectorAll('.shape-btn').forEach(b => { b.disabled = true; });
+    const demoButton = body.querySelector('.shape-demo-btn');
+    demoButton.querySelector('span').textContent = 'Minha vez';
+    demoButton.setAttribute('aria-label', 'Minha vez: começar a encaixar');
+    body.querySelector('.shape-story-text').textContent = 'Olhe como eu faço!';
+    shapeMood('demo');
+    ctx.instruct('O Pipo mostra: encaixe ' + shapeLabel(target) + '.',
+      'Olhe! ' + shapeLabel(target) + ' vai aqui.');
+    const piece = el('div', 'shape-demo-piece', shapeSVG(target, shapeColor(target)));
+    piece.setAttribute('aria-hidden', 'true');
+    const from = button.getBoundingClientRect?.();
+    const to = slot.getBoundingClientRect?.();
+    const origin = workshop.getBoundingClientRect?.();
+    if (from?.width && to?.width && origin) {
+      piece.style.left = (from.left - origin.left) + 'px';
+      piece.style.top = (from.top - origin.top) + 'px';
+      piece.style.width = from.width + 'px';
+      piece.style.height = from.height + 'px';
+      piece.style.setProperty('--demo-x', (to.left + to.width / 2 - from.left - from.width / 2) + 'px');
+      piece.style.setProperty('--demo-y', (to.top + to.height / 2 - from.top - from.height / 2) + 'px');
+    }
+    workshop.appendChild(piece);
+    ctx.schedule(() => finishShapeDemo(cur, token), 2600);
+  }
   function drawShapes(cur) {
     const target = cur.order[cur.index];
-    const art = SHAPE_NAMES[target].article;
-    ctx.instruct('Encaixe ' + shapeLabel(target) + '.', 'Encaixe ' + shapeLabel(target) + '! Toque ou arraste a peça até a sombra.');
+    const complete = !target;
+    if (!complete) ctx.instruct('Encaixe ' + shapeLabel(target) + '.', 'Encaixe ' + shapeLabel(target) + '! Toque ou arraste a peça até a sombra.');
     const body = ctx.body();
-    body.innerHTML = progressDots(cur.index, cur.order.length);
-    const hole = el('div', 'shape-target', shapeSVG(target, '', true));
-    hole.setAttribute('aria-label', 'Lugar d' + art + ' ' + SHAPE_NAMES[target].name);
-    body.appendChild(hole);
+    const existing = body.querySelector('.shape-workshop');
+    if (existing) {
+      existing.classList.remove('is-demonstrating');
+      existing.classList.toggle('is-complete', complete);
+      body.querySelector('.shape-story-text').textContent = complete ? 'Meu brinquedo ficou pronto!' : 'Vamos montar meu brinquedo?';
+      shapeMood(complete ? 'happy' : 'idle');
+      const demo = body.querySelector('.shape-demo-btn');
+      demo.hidden = complete;
+      demo.querySelector('span').textContent = 'Ver o Pipo';
+      demo.setAttribute('aria-label', 'Ver o Pipo mostrar como encaixar');
+      body.querySelector('.shape-board').setAttribute('aria-label', 'Caixa de encaixe: ' + cur.index + ' de ' + cur.order.length + ' peças colocadas');
+      body.querySelectorAll('.shape-slot').forEach((slot, i) => {
+        slot.classList.toggle('is-filled', i < cur.index);
+        slot.classList.toggle('is-current', i === cur.index);
+        slot.classList.remove('just-filled');
+      });
+      body.querySelectorAll('.shape-btn').forEach(b => {
+        const used = cur.placed.includes(b.dataset.shape);
+        b.classList.toggle('used', used);
+        b.disabled = used;
+      });
+      body.querySelector('.shape-tray').hidden = complete;
+      if (!complete) watch(() => body.querySelector('.shape-btn[data-shape="' + target + '"]'));
+      return;
+    }
+    body.innerHTML = '';
+    const workshop = el('div', 'shape-workshop' + (complete ? ' is-complete' : ''));
+    const story = el('div', 'shape-story');
+    const friend = el('div', 'shape-friend', shapeFriendSVG());
+    friend.dataset.mood = complete ? 'happy' : 'idle';
+    friend.setAttribute('aria-hidden', 'true');
+    story.appendChild(friend);
+    const bubble = el('div', 'shape-story-bubble');
+    bubble.appendChild(el('p', 'shape-story-text', complete ? 'Meu brinquedo ficou pronto!' : 'Vamos montar meu brinquedo?'));
+    const demo = makeButton('shape-demo-btn', icon('play') + '<span>Ver o Pipo</span>', () => demonstrateShape(cur), 'Ver o Pipo mostrar como encaixar');
+    demo.hidden = complete;
+    bubble.appendChild(demo);
+    story.appendChild(bubble);
+    workshop.appendChild(story);
+    const board = el('div', 'shape-board');
+    board.setAttribute('aria-label', 'Caixa de encaixe: ' + cur.index + ' de ' + cur.order.length + ' peças colocadas');
+    board.appendChild(el('div', 'shape-board-label', 'O brinquedo do Pipo'));
+    const slots = el('div', 'shape-board-slots');
+    slots.dataset.count = cur.order.length;
+    cur.order.forEach((shape, i) => {
+      const filled = i < cur.index;
+      const slot = el('div', 'shape-slot' + (filled ? ' is-filled' : i === cur.index ? ' is-current' : ''));
+      slot.appendChild(el('div', 'shape-target', shapeSVG(shape, shapeColor(shape), !filled)));
+      slot.dataset.shape = shape;
+      slot.setAttribute('aria-label', (filled ? 'Encaixado: ' : 'Lugar d' + SHAPE_NAMES[shape].article + ' ') + SHAPE_NAMES[shape].name);
+      slots.appendChild(slot);
+    });
+    board.appendChild(slots);
+    workshop.appendChild(board);
+    if (complete) { body.appendChild(workshop); return; }
+    const tray = el('div', 'shape-tray');
     const choices = el('div', 'shape-choices' + (cur.shapes.length > 3 ? ' many' : ''));
-    shuffle(cur.shapes).forEach((shape, i) => {
-      const b = makeButton('shape-btn', shapeSVG(shape, SHAPE_COLORS[(SHAPE_NAMES[shape].name.length + i) % SHAPE_COLORS.length]), null, SHAPE_NAMES[shape].name);
+    // A posição das peças fica estável enquanto o tabuleiro é preenchido.
+    if (!cur.trayOrder) cur.trayOrder = shuffle(cur.shapes);
+    cur.trayOrder.forEach(shape => {
+      const used = cur.placed.includes(shape);
+      const b = makeButton('shape-btn' + (used ? ' used' : ''), shapeSVG(shape, shapeColor(shape)), null, SHAPE_NAMES[shape].name);
       b.dataset.shape = shape;
+      b.disabled = used;
       const choose = () => {
-        if (!alive(cur) || cur.busy) return false;
-        if (shape === target) {
+        if (!alive(cur) || cur.busy || cur.demonstrating || cur.placed.includes(shape)) return false;
+        const currentTarget = cur.order[cur.index];
+        if (shape === currentTarget) {
           ctx.coach.hit();
           cur.busy = true;
-          hole.innerHTML = b.innerHTML;
-          hole.classList.add('filled');
+          const hole = body.querySelector('.shape-slot.is-current');
+          hole.querySelector('.shape-target').innerHTML = b.innerHTML;
+          hole.classList.add('is-filled', 'just-filled');
+          hole.classList.remove('is-current');
+          hole.setAttribute('aria-label', 'Encaixado: ' + SHAPE_NAMES[shape].name);
           b.classList.add('used');
+          body.querySelectorAll('.shape-btn').forEach(piece => { piece.disabled = true; });
           ctx.audio.good();
           ctx.audio.haptic(12);
           ctx.react('hop');
+          shapeMood('happy');
+          cur.placed.push(shape);
           cur.index++;
           const finish = () => {
-            cur.busy = false;
             if (!alive(cur)) return;
-            if (cur.index === cur.order.length) ctx.success('shapes', 'Todas as peças se encaixaram. O brinquedo do Pipo está pronto!', '🧩');
-            else drawShapes(cur);
+            cur.busy = false;
+            drawShapes(cur);
+            if (cur.index === cur.order.length) ctx.success('shapes', 'O brinquedo do Pipo está pronto!', '🧩', true);
           };
           ctx.schedule(finish, 700);
           return true;
         }
         ctx.audio.soft();
+        shapeMood('thinking');
         const a = SHAPE_NAMES[shape].article;
-        ctx.audio.say((a === 'a' ? 'Essa é ' : 'Esse é ') + shapeLabel(shape) + '. Procure ' + shapeLabel(target) + '.');
+        ctx.audio.say((a === 'a' ? 'Essa é ' : 'Esse é ') + shapeLabel(shape) + '. Procure ' + shapeLabel(currentTarget) + '.');
         b.classList.add('shake');
-        ctx.schedule(() => b.classList.remove('shake'), 450);
+        ctx.schedule(() => { if (alive(cur)) { b.classList.remove('shake'); shapeMood('idle'); } }, 450);
         ctx.coach.miss();
         return false;
       };
       installDrag(b, {
         onTap: choose,
-        onDrop: (_, x, y, under) => under.some(n => n.closest?.('.shape-target')) ? choose() : false,
+        onDrop: (_, x, y, under) => under.some(n => n.closest?.('.shape-slot.is-current')) ? choose() : false,
       });
       choices.appendChild(b);
     });
-    body.appendChild(choices);
-    watch(() => body.querySelector('[data-shape="' + target + '"]'));
+    tray.appendChild(choices);
+    workshop.appendChild(tray);
+    body.appendChild(workshop);
+    watch(() => body.querySelector('.shape-btn[data-shape="' + target + '"]'));
   }
 
   // ---------- Música ----------

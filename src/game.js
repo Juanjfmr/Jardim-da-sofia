@@ -573,6 +573,7 @@ function openActivity(type) {
   $('activity-body').innerHTML = '';
   $('activity-footer').innerHTML = '';
   $('activity-modal').style.setProperty('--theme', info.color);
+  $('activity-modal').dataset.activity = type;
   $('activity-modal').hidden = false;
   world?.setPaused(true);
   audio.holdMusic('xylophone', type === 'music');
@@ -594,7 +595,7 @@ function closeActivity(returnHome = true) {
   if (returnHome) home(false);
 }
 
-function success(type, text, picture = '💛') {
+function success(type, text, picture = '💛', keepResult = false) {
   if (!current || current.type !== type || current.rewarded) return;
   current.rewarded = true;
   coach.clear();
@@ -610,11 +611,15 @@ function success(type, text, picture = '💛') {
   const gift = unlocked ? ACCESSORIES.find(a => a.id === unlocked) : null;
   $('activity-instruction').textContent = text;
   const body = $('activity-body');
-  body.innerHTML = '<div class="celebration"><div class="celebration-stars">⭐ ⭐ ⭐</div><div class="celebration-emoji">' + picture + '</div><h3></h3><p class="celebration-text"></p>'
+  const celebration = document.createElement('div');
+  celebration.className = keepResult ? 'celebration shape-finish' : 'celebration';
+  celebration.innerHTML = (keepResult ? '' : '<div class="celebration-stars">⭐ ⭐ ⭐</div><div class="celebration-emoji">' + picture + '</div>') + '<h3></h3>' + (keepResult ? '' : '<p class="celebration-text"></p>')
     + '<div class="earned-flower" id="earned-flower">🌸 +1</div>'
-    + (gift ? '<div class="gift">' + gift.emoji + ' <span>Presente novo para o Pipo!</span></div>' : '') + '</div>';
-  body.querySelector('h3').textContent = 'Muito bem' + nm(', ') + '!';
-  body.querySelector('.celebration-text').textContent = text;
+    + (gift ? '<div class="gift">' + gift.emoji + ' <span>Presente novo para o Pipo!</span></div>' : '');
+  if (!keepResult) body.innerHTML = '';
+  body.appendChild(celebration);
+  celebration.querySelector('h3').textContent = 'Muito bem' + nm(', ') + '!';
+  if (!keepResult) celebration.querySelector('.celebration-text').textContent = text;
   audio.say('Muito bem' + nm(', ') + '! ' + text + (gift ? ' E você ganhou um presente para o Pipo!' : ''));
   setTimeout(() => flyTo($('earned-flower'), $('flower-count'), '🌸', bumpCounter), 700);
   const footer = $('activity-footer');

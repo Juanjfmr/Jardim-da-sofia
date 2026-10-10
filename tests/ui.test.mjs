@@ -91,6 +91,7 @@ test('jornada completa: começar, cuidar, brincar, enfeitar, ajustar e salvar', 
 
     // Formas
     openGame('shapes');
+    click('.shape-demo-btn'); // a criança pode passar da demonstração para sua vez
     for (let i = 0; i < 3; i++) {
       const instruction = $('activity-instruction').textContent;
       const b = [...document.querySelectorAll('.shape-btn')].find(s => instruction.includes(s.getAttribute('aria-label')));
@@ -99,6 +100,10 @@ test('jornada completa: começar, cuidar, brincar, enfeitar, ajustar e salvar', 
       await wait(780);
     }
     assert.equal(game.getState().completed.shapes, 1);
+    assert.equal(document.querySelectorAll('.shape-slot.is-filled').length, 3, 'o brinquedo pronto permanece na comemoração');
+    assert.ok(document.querySelector('.shape-friend[data-mood="happy"]'), 'o Pipo comemora junto do brinquedo');
+    assert.ok(document.querySelector('.shape-finish'), 'a comemoração acrescenta a recompensa sem apagar os encaixes');
+    assert.equal($('activity-footer').hidden, false);
     click('#activity-close');
 
     // Plantar
