@@ -1,5 +1,5 @@
 # Testa o jogo em cada pull request e, a cada mudança na main, publica a pasta dist
-# no GitHub Pages: https://juanjfmr.github.io/jardim-da-sofia/
+# no GitHub Pages: https://juanjfmr.github.io/Jardim-da-sofia/
 name: Testar e publicar
 
 on:

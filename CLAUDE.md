@@ -45,6 +45,6 @@ Os 18 testes passam. O visual e as interações foram conferidos em Chromium rea
 
 ## Publicação
 
-O workflow `.github/workflows/pages.yml` roda os testes em cada pull request. A cada push na `main`, ele testa, gera `dist/` e publica no GitHub Pages: https://juanjfmr.github.io/jardim-da-sofia/
+O workflow `.github/workflows/pages.yml` roda os testes em cada pull request. A cada push na `main`, ele testa, gera `dist/` e publica no GitHub Pages: https://juanjfmr.github.io/Jardim-da-sofia/
 
 No repositório, o Pages precisa estar com a origem **GitHub Actions** (Settings › Pages). Para publicar em outro lugar, hospede o conteúdo de `dist/` em qualquer serviço de sites estáticos com HTTPS. O HTTPS é necessário para o service worker e para instalar o jogo no celular.
