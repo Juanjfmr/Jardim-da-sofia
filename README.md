@@ -29,6 +29,8 @@ Jogo de bichinho virtual para crianças de **3 a 5 anos**, feito em Three.js 0.1
 - **Música:** xilofone livre ou “Imitar o Pipo”, com melodias de 2, 3 ou 4 notas.
 - **Plantar:** quatro canteiros que guardam o progresso: semente, broto, crescimento e flor.
 
+Prévia de Formas: [caixa de encaixes no celular](docs/previews/formas-celular.jpg) e [brinquedo pronto no celular deitado](docs/previews/formas-concluidas-paisagem.jpg).
+
 ## Cantinho da família
 
 Fica protegido: só abre **segurando a engrenagem por 2 segundos**. Um toque rápido não abre.
