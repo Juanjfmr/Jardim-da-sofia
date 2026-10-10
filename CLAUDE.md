@@ -9,7 +9,7 @@ Requer Node.js 20 ou posterior.
 ```sh
 npm ci
 npm run build   # gera dist/ (copia src, Three.js, fonte Fredoka e monta o service worker)
-npm test        # reconstrói dist e roda os 29 testes
+npm test        # reconstrói dist e roda os 44 testes
 python3 -m http.server 8080 --directory dist
 ```
 
@@ -18,6 +18,7 @@ Não abra `index.html` por `file://`: o jogo usa módulos JavaScript. `dist/` n�
 ## Estrutura
 
 - `src/game.js`: controlador principal. Cuida do dock, dos modos de cuidado (comer, banho, bolhas, dormir), das folhas de brincadeiras e enfeites, da comemoração, do cantinho da família (portão de segurar), do tempo de tela e dos eventos globais.
+- `src/kitchen.js`, `src/wardrobe.js`, `src/pipo-portrait.js`, `src/pipo-rooms.css`: cozinha de faz de conta (misturar, assar e servir) e roupas com espelho, cores, persistência e modelo 3D. Timers da cozinha são próprios e cancelados ao sair, descansar ou esconder a página.
 - `src/activities.js`: as seis brincadeiras. Conversam com o jogo só pelo objeto `ctx`.
 - `src/ui.js`: arrastar com mola (`installDrag`), confete, partículas, voo até o contador, botão de segurar e `Coach` (dicas automáticas).
 - `src/world.js`: cenário Three.js. O enquadramento (`fitFrustum`) ajusta a câmera ao espaço livre da tela. Também tem nuvens, noite, bolhas, espuma, comida que voa até a boca, toque com área generosa e qualidade adaptativa.
@@ -41,7 +42,7 @@ Não abra `index.html` por `file://`: o jogo usa módulos JavaScript. `dist/` n�
 
 ## Validação
 
-Os 29 testes passam. O visual e as interações foram conferidos em Chromium real (Playwright, WebGL por SwiftShader) em 390×844, 375×667, 844×390, 820×1180, 1180×820 e 1280×720. Foram testados: arrastar fruta até a boca, arrastar letra, mola ao soltar fora, estourar bolhas no 3D, banho completo, dica automática, portão dos adultos e tela de descanso. Formas também tem testes de demonstração, tabuleiro persistente, níveis e recompensa única; a escolha de voz tem ranking e interface testados com listas simuladas. A voz depende do aparelho; teste num celular real com som ligado.
+Os 44 testes passam. O visual e as interações foram conferidos em Chromium real (Playwright, WebGL por SwiftShader) em 390×844, 375×667, 844×390, 820×1180, 1180×820 e 1280×720. Foram testados: arrastar fruta até a boca, arrastar letra, mola ao soltar fora, estourar bolhas no 3D, banho completo, dica automática, portão dos adultos e tela de descanso. Formas também tem testes de demonstração, tabuleiro persistente, níveis e recompensa única; a escolha de voz tem ranking e interface testados com listas simuladas. A voz depende do aparelho; teste num celular real com som ligado.
 
 ## Publicação
 

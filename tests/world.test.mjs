@@ -64,10 +64,10 @@ test('o coelhinho mantém geometria válida em todas as reações, olhares e enf
 test('enquadramento: as seis estações cabem entre o balão de fala e os botões em vários aparelhos', () => {
   const camera = new THREE.OrthographicCamera();
   const screens = [
-    ['iPhone SE', 375, 520, { top: 84 }], ['celular comum', 390, 684, { top: 84 }], ['celular grande', 430, 760, { top: 84 }],
-    ['celular deitado', 844, 300, { left: 360 }], ['tablet em pé', 768, 900, { top: 96 }], ['tablet em pé grande', 820, 1000, { top: 96 }],
-    ['tablet deitado', 1180, 640, { top: 96 }],
-    ['computador', 1280, 600, { top: 90 }],
+    ['iPhone SE', 375, 520, { top: 84, bottom: 84 }], ['celular comum', 390, 684, { top: 84, bottom: 84 }], ['celular grande', 430, 760, { top: 84, bottom: 84 }],
+    ['celular deitado', 844, 300, { left: 360, bottom: 72 }], ['tablet em pé', 768, 900, { top: 96, bottom: 84 }], ['tablet em pé grande', 820, 1000, { top: 96, bottom: 84 }],
+    ['tablet deitado', 1180, 640, { top: 96, bottom: 84 }],
+    ['computador', 1280, 600, { top: 90, bottom: 84 }],
   ];
   const label = 29; // metade da etiqueta redonda
   for (const [name, width, height, insets] of screens) {
@@ -77,7 +77,7 @@ test('enquadramento: as seis estações cabem entre o balão de fala e os botõe
       const v = new THREE.Vector3(...st.point).project(camera);
       const x = (v.x + 1) / 2 * width, y = (1 - v.y) / 2 * height;
       assert.ok(x - label >= (insets.left || 0) - 6 && x + label <= width, st.name + ' cabe na largura em ' + name + ' (' + Math.round(x) + ')');
-      assert.ok(y - label >= (insets.top || 0) - 6 && y + label <= height, st.name + ' fica abaixo do balão em ' + name + ' (' + Math.round(y) + ')');
+      assert.ok(y - label >= (insets.top || 0) - 6 && y + label <= height - (insets.bottom || 0), st.name + ' fica entre o balão e os atalhos do Pipo em ' + name + ' (' + Math.round(y) + ')');
     }
   }
 });

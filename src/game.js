@@ -3,8 +3,10 @@ import { GardenAudio } from './audio.js';
 import { icon, pipoFace } from './icons.js';
 import { $, makeButton, installDrag, particles, confetti, flyTo, holdToActivate, Coach } from './ui.js';
 import { createActivities, ACTIVITY_LIST } from './activities.js';
+import { createKitchen } from './kitchen.js';
+import { createWardrobe } from './wardrobe.js';
 import {
-  SAVE_KEY, ACCESSORIES, initialState, sanitizeState, sanitizeName, unlockedAccessories, nextAccessory,
+  SAVE_KEY, ACCESSORIES, initialState, sanitizeState, sanitizeName, unlockedAccessories,
   care, reward, tick, currentNeed, addPlayTime, timeIsUp, todayKey,
 } from './state.js';
 
@@ -28,13 +30,14 @@ let lastNeed = null, lastNeedSpoken = 0;
 let lastInteraction = Date.now(), nudges = 0;
 let petTaps = [];
 let resting = false;
+const roomControllers = new Map();
 
 audio.enabled = state.sound;
 audio.voice = state.voice;
 audio.musicOn = state.music;
 
 const DOCK = [
-  ['feed', 'Comer', 'carrot'],
+  ['feed', 'Cozinha', 'carrot'],
   ['bath', 'Banho', 'bath'],
   ['games', 'Brincar', 'games'],
   ['play', 'Bolhas', 'bubbles'],
@@ -103,6 +106,8 @@ function buildDock() {
   $('parent-btn').insertAdjacentHTML('beforeend', icon('settings'));
   document.querySelectorAll('.sheet-close').forEach(b => { b.innerHTML = icon('close'); b.addEventListener('click', () => closeSheet(b.dataset.close)); });
   document.querySelector('.play-icon').innerHTML = icon('play');
+  $('kitchen-back').innerHTML = icon('home');
+  $('wardrobe-back').innerHTML = icon('home');
 }
 
 function sync() {
@@ -121,6 +126,7 @@ function sync() {
     sleepBtn.setAttribute('aria-label', state.sleeping ? 'Acordar' : 'Dormir');
   }
   $('app').classList.toggle('night', state.sleeping);
+  $('pipo-places').hidden = !started || mode !== 'home' || anyOverlayOpen();
   if (world) world.setState(state);
   updateNeed();
   save();
@@ -156,7 +162,7 @@ function updateNeed() {
 }
 
 function anyOverlayOpen() {
-  return ['activity-modal', 'parent-modal', 'games-sheet', 'wardrobe-sheet', 'rest-screen', 'welcome'].some(id => !$(id).hidden);
+  return ['activity-modal', 'parent-modal', 'games-sheet', 'wardrobe-sheet', 'kitchen-sheet', 'rest-screen', 'welcome'].some(id => !$(id).hidden);
 }
 
 // Espaço livre para a câmera: entre o balão de fala e as ferramentas do modo.
@@ -166,6 +172,7 @@ function updateInsets() {
   const speech = $('speech').getBoundingClientRect();
   const tools = $('mode-tools');
   let bottom = 0;
+  if (!$('pipo-places').hidden) bottom = Math.max(0, stage.bottom - $('pipo-places').getBoundingClientRect().top);
   if (!tools.hidden) {
     const r = tools.getBoundingClientRect();
     bottom = Math.max(0, stage.bottom - r.top);
@@ -236,6 +243,7 @@ function setupWorld() {
     ro.observe($('stage'));
     ro.observe($('speech'));
     ro.observe($('mode-tools'));
+    ro.observe($('pipo-places'));
   } else window.addEventListener('resize', () => { world.resize(); updateInsets(); });
   renderTitle();
   updateInsets();
@@ -271,6 +279,7 @@ function onDock(id) {
   audio.activate();
   audio.tap();
   if (id === 'games') { openSheet('games-sheet'); return; }
+  if (id === 'feed') { openSheet('kitchen-sheet'); return; }
   setCareMode(id);
 }
 
@@ -292,13 +301,14 @@ function toolbar(html) {
 const CLOSE_BTN = '<button type="button" class="tool-close" aria-label="Voltar ao jardim"></button>';
 
 function home(speak = true) {
+  ['games-sheet', 'wardrobe-sheet', 'kitchen-sheet'].forEach(id => closeSheet(id, false));
   closeActivity(false);
   mode = 'home';
   $('mode-tools').hidden = true;
   $('mode-tools').innerHTML = '';
   world?.setMode('home');
-  updateInsets();
   sync();
+  updateInsets();
   say(state.sleeping ? 'O Pipo está dormindo. Toque em Acordar quando quiser.' : 'Toque no Pipo para dar carinho. Do que vamos brincar?', speak);
 }
 
@@ -306,6 +316,9 @@ function setCareMode(next) {
   if (!started) return;
   closeActivity(false);
   closeSheet('games-sheet', false);
+  closeSheet('wardrobe-sheet', false);
+  closeSheet('kitchen-sheet', false);
+  if (next === 'feed') { openSheet('kitchen-sheet'); return; }
   if (next === 'sleep') {
     mode = 'home';
     world?.setMode('home');
@@ -324,6 +337,7 @@ function setCareMode(next) {
       floatAt('💤', 5, $('stage'));
     }
     sync();
+    updateInsets();
     return;
   }
   wake();
@@ -456,7 +470,7 @@ function careReward(type) {
   world?.pet.react('happy');
   bumpCounter();
   sync();
-  if (unlocked) setTimeout(() => announceAccessory(unlocked), 1800);
+  if (unlocked) setTimeout(() => { if (!resting && !document.hidden && $('parent-modal').hidden) announceAccessory(unlocked); }, 1800);
 }
 function bumpCounter() {
   const chip = $('flower-count');
@@ -474,55 +488,45 @@ function announceAccessory(id) {
 // Folhas (brincadeiras e enfeites)
 // ---------------------------------------------------------------------------
 function openSheet(id) {
-  if (!started) return;
+  if (!started || resting) return;
+  const trigger = document.activeElement;
+  closeActivity(false);
+  ['games-sheet', 'wardrobe-sheet', 'kitchen-sheet'].forEach(other => closeSheet(other, false));
+  wake();
+  mode = 'home';
+  $('mode-tools').hidden = true;
+  $('mode-tools').replaceChildren();
+  world?.setMode('home');
   audio.whoosh();
-  restoreFocus = document.activeElement;
+  restoreFocus = trigger;
   $(id).hidden = false;
-  if (id === 'wardrobe-sheet') renderWardrobe();
-  updateNeed();
+  world?.setPaused(true);
+  const context = {
+    body: $(id).querySelector('.pipo-room-body'), state: () => state, audio,
+    update: fn => { state = fn(state); sync(); },
+    say: text => say(text), react: kind => world?.pet.react(kind),
+    touch, burst: (node, symbol, count) => floatAt(symbol, count, node),
+    serve: () => { state = care(state, 'eat'); careReward('cook'); audio.munch(); },
+  };
+  if (id === 'wardrobe-sheet') roomControllers.set(id, createWardrobe(context));
+  if (id === 'kitchen-sheet') roomControllers.set(id, createKitchen(context));
+  if (context.body) context.body.scrollTop = 0;
+  sync();
+  updateInsets();
   if (id === 'games-sheet') audio.say('Do que vamos brincar?');
-  $(id).querySelector('.sheet-close')?.focus?.();
+  $(id).querySelector('.sheet-close, .room-back')?.focus?.();
 }
 function closeSheet(id, focus = true) {
   if ($(id).hidden) return;
+  roomControllers.get(id)?.destroy();
+  roomControllers.delete(id);
   $(id).hidden = true;
   audio.stopSpeech();
+  world?.setPaused(anyOverlayOpen());
   if (focus) restoreFocus?.focus?.();
-  updateNeed();
-}
-
-function renderWardrobe() {
-  const next = nextAccessory(state);
-  const prev = [...ACCESSORIES].reverse().find(a => state.rewards >= a.need);
-  const pct = next ? Math.round(((state.rewards - prev.need) / (next.need - prev.need)) * 100) : 100;
-  $('wardrobe-progress').innerHTML = next
-    ? '<span class="wp-count">🌸 ' + state.rewards + '</span><div class="wp-bar"><i style="width:' + pct + '%"></i></div><span class="wp-next">' + next.emoji + '</span>'
-    : '<span class="wp-count">🌸 ' + state.rewards + '</span><span class="wp-done">Você ganhou todos os enfeites!</span>';
-  const box = $('accessory-options');
-  box.innerHTML = '';
-  const unlocked = unlockedAccessories(state);
-  for (const a of ACCESSORIES) {
-    const open = unlocked.includes(a.id);
-    const b = makeButton('accessory-btn' + (state.accessory === a.id ? ' selected' : '') + (open ? '' : ' locked'),
-      '<span class="acc-emoji">' + a.emoji + '</span>' + (open ? '' : '<span class="acc-lock">' + icon('lock') + '<small>🌸' + a.need + '</small></span>'),
-      () => {
-        if (!open) {
-          audio.soft();
-          const missing = a.need - state.rewards;
-          audio.say('Faltam ' + missing + (missing === 1 ? ' flor' : ' flores') + '. Brinque para ganhar!');
-          b.classList.add('shake');
-          setTimeout(() => b.classList.remove('shake'), 450);
-          return;
-        }
-        state = { ...state, accessory: a.id };
-        audio.sparkle();
-        audio.say(a.id === 'none' ? 'Assim, sem nada!' : 'Que lindo! ' + a.label + '!');
-        world?.pet.react('happy');
-        sync();
-        renderWardrobe();
-      }, a.label + (open ? '' : ': ' + a.need + ' flores para ganhar'));
-    box.appendChild(b);
-  }
+  sync();
+  updateInsets();
+  if (focus && id !== 'games-sheet' && !anyOverlayOpen()) say('Voltei ao jardim! Vamos cozinhar, trocar de roupa ou brincar?');
 }
 
 // ---------------------------------------------------------------------------
@@ -563,6 +567,7 @@ function openActivity(type) {
   closeActivity(false);
   closeSheet('games-sheet', false);
   closeSheet('wardrobe-sheet', false);
+  closeSheet('kitchen-sheet', false);
   mode = 'home';
   world?.setMode('home');
   $('mode-tools').hidden = true;
@@ -633,6 +638,7 @@ function success(type, text, picture = '💛', keepResult = false) {
 // Cantinho da família
 // ---------------------------------------------------------------------------
 function openParents() {
+  ['games-sheet', 'wardrobe-sheet', 'kitchen-sheet'].forEach(id => closeSheet(id, false));
   restoreFocus = document.activeElement;
   audio.stopSpeech();
   $('parent-modal').hidden = false;
@@ -747,10 +753,12 @@ function showRest() {
   if (resting) return;
   resting = true;
   closeActivity(false);
-  ['games-sheet', 'wardrobe-sheet'].forEach(id => closeSheet(id, false));
+  ['games-sheet', 'wardrobe-sheet', 'kitchen-sheet'].forEach(id => closeSheet(id, false));
   $('rest-text').textContent = 'O Pipo ficou com soninho' + nm(', ') + '. Vamos brincar de novo amanhã?';
   $('rest-screen').hidden = false;
-  if (!state.sleeping) { state = care(state, 'sleep'); world?.pet.react('sleep'); sync(); }
+  if (!state.sleeping) { state = care(state, 'sleep'); world?.pet.react('sleep'); }
+  sync();
+  $('rest-unlock').focus?.();
   audio.say('O Pipo ficou com soninho. Vamos brincar de novo amanhã? Tchau, tchau!');
 }
 function endRest() {
@@ -801,6 +809,13 @@ $('need-bubble').addEventListener('click', () => {
   else if (need) setCareMode(need);
 });
 $('flower-count').addEventListener('click', () => { touch(); audio.tap(); openSheet('wardrobe-sheet'); });
+$('wardrobe-open').addEventListener('click', () => { touch(); audio.activate(); openSheet('wardrobe-sheet'); });
+$('kitchen-open').addEventListener('click', () => { touch(); audio.activate(); openSheet('kitchen-sheet'); });
+$('kitchen-back').addEventListener('click', () => closeSheet('kitchen-sheet'));
+$('wardrobe-back').addEventListener('click', () => closeSheet('wardrobe-sheet'));
+$('kitchen-snack').addEventListener('click', () => {
+  closeSheet('kitchen-sheet', false); wake(); mode = 'feed'; world?.setMode('feed'); startFeed(); sync();
+});
 holdToActivate($('parent-btn'), 2000, openParents, () => toast('Para adultos: segure o botão por 2 segundos.'));
 holdToActivate($('rest-unlock'), 2000, endRest, () => toast('Um adulto precisa segurar o botão.'));
 $('parent-close').addEventListener('click', closeParents);
@@ -813,21 +828,23 @@ $('name-setting').addEventListener('change', commitName);
 $('article-setting').addEventListener('change', e => { state = { ...state, article: e.target.value }; renderTitle(); sync(); });
 $('activity-close').addEventListener('click', () => { audio.tap(); home(); });
 $('activity-voice').addEventListener('click', () => audio.say(current?.spoken || current?.instruction || prompt));
-document.querySelectorAll('.sheet-veil').forEach(v => v.addEventListener('click', e => { if (e.target === v) closeSheet(v.id); }));
+document.querySelectorAll('.sheet-veil, .pipo-room-veil').forEach(v => v.addEventListener('click', e => { if (e.target === v) closeSheet(v.id); }));
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     if (!$('parent-modal').hidden) closeParents();
     else if (!$('wardrobe-sheet').hidden) closeSheet('wardrobe-sheet');
+    else if (!$('kitchen-sheet').hidden) closeSheet('kitchen-sheet');
     else if (!$('games-sheet').hidden) closeSheet('games-sheet');
     else if (!$('activity-modal').hidden || mode !== 'home') home();
   }
   if (e.key === 'Tab') {
-    const modal = ['parent-modal', 'activity-modal', 'games-sheet', 'wardrobe-sheet', 'rest-screen', 'welcome'].map($).find(m => !m.hidden);
+    const modal = ['parent-modal', 'activity-modal', 'games-sheet', 'wardrobe-sheet', 'kitchen-sheet', 'rest-screen', 'welcome'].map($).find(m => !m.hidden);
     if (!modal) return;
     const focusable = [...modal.querySelectorAll('button:not(:disabled),input,select')].filter(b => !b.hidden);
     if (!focusable.length) return;
     const first = focusable[0], last = focusable[focusable.length - 1];
+    if (!modal.contains(document.activeElement)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); return; }
     if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   }
@@ -839,10 +856,10 @@ document.addEventListener('gesturestart', e => e.preventDefault());
 document.addEventListener('touchstart', () => {}, { passive: true }); // ativa :active no iOS
 document.addEventListener('pointerdown', touch, { passive: true });
 
-window.addEventListener('pagehide', () => { save(); audio.stop(); });
+window.addEventListener('pagehide', () => { closeSheet('kitchen-sheet', false); save(); audio.stop(); });
 document.addEventListener('visibilitychange', () => {
   audio.holdMusic('hidden', document.hidden);
-  if (document.hidden) { save(); audio.stop(); }
+  if (document.hidden) { closeSheet('kitchen-sheet', false); save(); audio.stop(); }
 });
 
 // Relógio do jogo: necessidades, tempo de tela e convites quando a criança fica parada.

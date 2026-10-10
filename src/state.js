@@ -51,9 +51,25 @@ export const ACCESSORIES = [
   { id: 'glasses', emoji: '🕶️', label: 'Óculos', need: 30 },
 ];
 const ACCESSORY_IDS = ACCESSORIES.map(a => a.id);
+// As roupas fazem parte da brincadeira desde o começo, sem depender de flores.
+export const OUTFITS = [
+  { id: 'none', label: 'Sem roupa', need: 0 },
+  { id: 'overalls', label: 'Jardineira', need: 0 },
+  { id: 'shirt', label: 'Camiseta', need: 0 },
+  { id: 'pajamas', label: 'Pijama', need: 0 },
+  { id: 'chef', label: 'Avental', need: 0 },
+];
+export const OUTFIT_COLORS = [
+  { id: 'mint', label: 'Verde', hex: '#77bfa0' },
+  { id: 'coral', label: 'Rosa', hex: '#ee8ba5' },
+  { id: 'sky', label: 'Azul', hex: '#76b7df' },
+  { id: 'honey', label: 'Amarelo', hex: '#efbd53' },
+];
+const OUTFIT_IDS = OUTFITS.map(o => o.id);
+const OUTFIT_COLOR_IDS = OUTFIT_COLORS.map(c => c.id);
 export const VOICE_SPEEDS = ['slow', 'normal', 'fast'];
 export const VOICE_TONES = ['normal', 'high', 'higher'];
-const COMPLETION_KEYS = ['letters', 'count', 'colors', 'shapes', 'music', 'garden', 'bath', 'play'];
+const COMPLETION_KEYS = ['letters', 'count', 'colors', 'shapes', 'music', 'garden', 'bath', 'play', 'cook'];
 
 export function initialState() {
   return {
@@ -65,7 +81,7 @@ export function initialState() {
     voiceURI: '', voiceRate: 'normal', voicePitch: 'normal',
     name: DEFAULT_NAME, article: 'da',
     limit: 0, playDay: '', playSeconds: 0,
-    rewards: 0, accessory: 'none',
+    rewards: 0, accessory: 'none', outfit: 'none', outfitColor: 'mint',
     completed: {},
     plants: [0, 0, 0, 0],
     visits: 0,
@@ -97,6 +113,8 @@ export function sanitizeState(input) {
   if (typeof input.playDay === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(input.playDay)) s.playDay = input.playDay;
   if (Number.isFinite(input.playSeconds)) s.playSeconds = clamp(Math.floor(input.playSeconds), 0, 86400);
   if (ACCESSORY_IDS.includes(input.accessory)) s.accessory = input.accessory;
+  if (OUTFIT_IDS.includes(input.outfit)) s.outfit = input.outfit;
+  if (OUTFIT_COLOR_IDS.includes(input.outfitColor)) s.outfitColor = input.outfitColor;
   if (Array.isArray(input.plants) && input.plants.length === 4) s.plants = input.plants.map(v => Number.isInteger(v) ? clamp(v, 0, 3) : 0);
   if (input.completed && typeof input.completed === 'object') {
     for (const k of COMPLETION_KEYS) if (Number.isInteger(input.completed[k])) s.completed[k] = clamp(input.completed[k], 0, 100000);

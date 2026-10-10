@@ -18,6 +18,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="preload" href="./fonts/fredoka-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./pipo-rooms.css">
 </head>
 <body>
 <div id="app">
@@ -38,6 +39,10 @@
       <button id="repeat-prompt" class="round-btn" type="button" aria-label="Ouvir de novo"></button>
     </div>
     <div id="mode-tools" hidden></div>
+    <div id="pipo-places" hidden>
+      <button id="wardrobe-open" class="pipo-place clothes-place" type="button" aria-label="Guarda-roupa do Pipo"><span aria-hidden="true">👕</span><span>Guarda-roupa</span></button>
+      <button id="kitchen-open" class="pipo-place kitchen-place" type="button" aria-label="Cozinhar com o Pipo"><span aria-hidden="true">🍕</span><span>Cozinhar</span></button>
+    </div>
     <div id="toast" role="status" aria-live="polite"></div>
     <div id="particle-layer" aria-hidden="true"></div>
   </main>
@@ -62,11 +67,17 @@
   </section>
 </div>
 
-<div id="wardrobe-sheet" class="veil sheet-veil" hidden>
-  <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="wardrobe-title">
-    <header class="sheet-header"><h2 id="wardrobe-title">Enfeites do Pipo</h2><button class="round-btn sheet-close" type="button" data-close="wardrobe-sheet" aria-label="Fechar"></button></header>
-    <div id="wardrobe-progress" class="wardrobe-progress"></div>
-    <div id="accessory-options" class="accessory-grid"></div>
+<div id="wardrobe-sheet" class="veil pipo-room-veil" hidden>
+  <section class="pipo-room-card" role="dialog" aria-modal="true" aria-labelledby="wardrobe-title">
+    <header class="pipo-room-header"><button id="wardrobe-back" class="room-back" type="button" aria-label="Voltar ao jardim"></button><div><span class="eyebrow">BRINQUE COM O PIPO</span><h2 id="wardrobe-title">Guarda-roupa</h2></div><span class="room-header-toy" aria-hidden="true">🧸</span></header>
+    <div class="pipo-room-body"></div>
+  </section>
+</div>
+
+<div id="kitchen-sheet" class="veil pipo-room-veil" hidden>
+  <section class="pipo-room-card" role="dialog" aria-modal="true" aria-labelledby="kitchen-title">
+    <header class="pipo-room-header"><button id="kitchen-back" class="room-back" type="button" aria-label="Voltar ao jardim"></button><div><span class="eyebrow">BRINQUE COM O PIPO</span><h2 id="kitchen-title">Cozinha do Pipo</h2></div><button id="kitchen-snack" type="button" class="room-back" aria-label="Dar uma fruta pronta">🍎</button></header>
+    <div class="pipo-room-body"></div>
   </section>
 </div>
 
