@@ -21,6 +21,23 @@ O APK **não contém** modelos 3D da Patrulha Canina, imagens oficiais ou arquiv
 
 Arquivos importados ficam em **IndexedDB**, no armazenamento privado do aplicativo; não são enviados para GitHub ou outro serviço. Desinstalar o APK ou limpar os dados do aplicativo pode apagar personagens importados e o progresso. Não há sincronização de dados entre o site e este APK.
 
+## APK com personagens incluídos (sem importação manual)
+
+O código agora aceita **quatro modelos incorporados ao APK durante a compilação**, sem publicar os GLB no repositório.
+
+Coloque os modelos que você tem direito de utilizar em uma pasta privada fora do repositório, com estes nomes exatos:
+
+- `chase.glb`
+- `marshall.glb`
+- `skye.glb`
+- `rubble.glb`
+
+O comando `FAMILY_MODEL_DIR=/caminho/privado/modelos npm run build` gera o diretório `dist/family-models` contendo os quatro GLB e um manifesto. Depois, use Capacitor/Android Gradle para empacotar essa mesma pasta `dist`. **Não execute a compilação com arquivos de terceiros em uma máquina ou repositório público.** A branch e o workflow públicos continuam gerando o APK *sem modelos* quando `FAMILY_MODEL_DIR` não está configurado.
+
+Na primeira execução, o aplicativo encontra o manifesto local, grava os modelos no armazenamento privado e exibe os quatro visitantes automaticamente no seletor do jardim. Os modelos são carregados apenas quando a criança escolhe um deles, não todos juntos. Uma substituição já importada manualmente pelo adulto é preservada.
+
+A compilação não baixa arquivos automaticamente de sites de terceiros, e esta edição não concede direitos de uso sobre modelos protegidos.
+
 ## Segurança e limites
 
 - Fonte dos modelos: confirme os direitos do autor e dos personagens. Ser um arquivo marcado como *download gratuito* numa galeria não prova autorização dos detentores de direitos da série.
