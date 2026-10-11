@@ -223,6 +223,16 @@ test('jornada completa: começar, cuidar, brincar, enfeitar, ajustar e salvar', 
     assert.equal(game.getActivity(), 'colors', 'retoma o próximo capítulo sem perder a etapa');
     assert.deepEqual(JSON.parse(saved.get('jardim-sofia-v1')).adventure, { id: 'picnic', step: 1 });
     click('#activity-close');
+
+    // Interações do Pipo também funcionam sem WebGL.
+    click('.fallback-pipo');
+    assert.match($('prompt-text').textContent, /cabecinha/);
+    click('.fallback-pipo');
+    click('.fallback-pipo');
+    assert.match($('prompt-text').textContent, /cócegas/);
+    for (let i = 0; i < 3; i++) click('.fallback-pipo');
+    assert.match($('prompt-text').textContent, /girando/);
+    assert.equal(game.getMode(), 'home');
   } finally {
     intervals.forEach(clearInterval);
     globalThis.setInterval = originalInterval;
