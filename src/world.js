@@ -1,5 +1,6 @@
 import * as THREE from './vendor/three.module.js';
 import { createBunny } from './pet.js';
+import { makeStoryTree, makeStoryCottage, decorateStoryGarden } from './art-direction.js';
 
 // Poses da câmera. A ortográfica dá o ar de "diorama" e o enquadramento é calculado
 // para caber exatamente no espaço livre entre o balão de fala e os botões.
@@ -33,7 +34,7 @@ export const FRAME_POINTS = {
 export const GARDEN_POINTS = [
   ...FRAME_POINTS.home,
   [-4.75, 0.2, -5.5], [4.75, 0.2, -5.5], [-4.75, 0.2, 5.5], [4.75, 0.2, 5.5],
-  [-3.65, 3.5, -4.3], [4, 2.9, -1.75], [2.28, 3.05, -3.48],
+  [-3.65, 4.2, -4.3], [4, 3.7, -1.75], [2.28, 3.05, -3.48],
 ];
 
 const smoothstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
@@ -141,6 +142,7 @@ export class GardenWorld {
     this.environment = new THREE.Group();
     this.scene.add(this.environment);
     this.buildGarden(state);
+    decorateStoryGarden(this, THREE);
     this.batchDecorations();
     this.buildSky();
     this.pet = createBunny(THREE);
@@ -308,48 +310,8 @@ export class GardenWorld {
     this.mesh('box', '#f3dcb9', x, 0.56, z, 0.21, 1.03, 0.2);
     this.mesh('sphere', '#f3dcb9', x, 1.08, z, 0.105, 0.13, 0.1);
   }
-  makeTree(x, z, scale) {
-    const g = new THREE.Group();
-    g.position.set(x, 0, z);
-    g.scale.setScalar(scale);
-    this.environment.add(g);
-    this.mesh('cylinder', '#c9a47a', 0, 1.25, 0, 0.17, 2.5, 0.17, g);
-    for (let i = 0; i < 6; i++) {
-      const tx = Math.sin(i * 2.4) * 0.66, ty = 2.6 + (i % 3) * 0.29, tz = Math.cos(i * 2.4) * 0.45;
-      this.mesh('sphere', ['#a5cf7f', '#bfdc93', '#8cc278'][i % 3], tx, ty, tz, 0.72, 0.85, 0.69, g);
-    }
-    // Maçãzinhas na árvore.
-    for (let i = 0; i < 4; i++) this.mesh('sphere', '#f07b7b', Math.sin(i * 1.9) * 0.62, 2.45 + (i % 2) * 0.5, 0.55 + Math.cos(i) * 0.1, 0.1, 0.1, 0.1, g);
-    this.treeTops.push(g);
-  }
-  makeHouse(x, z) {
-    const g = new THREE.Group();
-    g.position.set(x, 0, z);
-    this.environment.add(g);
-    this.mesh('box', '#f6e0c4', 0, 1, 0, 2.12, 1.95, 1.74, g);
-    this.mesh('box', '#e2c39e', 0, 0.11, 0.12, 2.43, 0.22, 2.09, g);
-    const shape = new THREE.Shape();
-    shape.moveTo(-1.28, 0); shape.lineTo(1.28, 0); shape.lineTo(0, 1.03); shape.closePath();
-    const roof = new THREE.Mesh(new THREE.ExtrudeGeometry(shape, { depth: 2.0, bevelEnabled: true, bevelSize: 0.04, bevelThickness: 0.035, bevelSegments: 2 }), this.mat('#e58f86'));
-    roof.position.set(0, 1.95, -1);
-    roof.castShadow = true;
-    g.add(roof);
-    this.mesh('box', '#f0aaa0', 0, 2.95, 0, 0.12, 0.12, 2.14, g);
-    const doorShape = new THREE.Shape();
-    doorShape.moveTo(-0.54, 0); doorShape.lineTo(0.54, 0); doorShape.lineTo(0.54, 0.99); doorShape.absarc(0, 0.99, 0.54, 0, Math.PI, false); doorShape.lineTo(-0.54, 0);
-    const door = new THREE.Mesh(new THREE.ShapeGeometry(doorShape), this.mat('#b38a68'));
-    door.position.set(0, 0.13, 0.891);
-    g.add(door);
-    this.mesh('sphere', '#f0c4c4', 0, 0.3, 0.97, 0.48, 0.12, 0.32, g);
-    this.mesh('sphere', '#fff0d3', 0.05, 0.46, 0.91, 0.33, 0.085, 0.15, g);
-    this.mesh('sphere', '#fff6dc', -0.48, 1.5, 0.9, 0.12, 0.12, 0.03, g);
-    this.mesh('sphere', '#f0bac5', -0.48, 1.5, 0.935, 0.075, 0.075, 0.02, g);
-    // Janelinha que acende de noite.
-    this.windowLight = new THREE.Mesh(new THREE.CircleGeometry(0.22, 20), new THREE.MeshBasicMaterial({ color: '#cfe3ee' }));
-    this.windowLight.position.set(0.62, 1.35, 0.875);
-    g.add(this.windowLight);
-    this.register(g, 'sleep');
-  }
+  makeTree(x, z, scale) { return makeStoryTree(this, THREE, x, z, scale); }
+  makeHouse(x, z) { return makeStoryCottage(this, THREE, x, z); }
   carrot(parent, x = 0, y = 0, z = 0, scale = 1) {
     const g = new THREE.Group();
     g.position.set(x, y, z);

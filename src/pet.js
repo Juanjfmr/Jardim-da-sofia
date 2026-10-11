@@ -1,4 +1,5 @@
 import { OUTFITS, OUTFIT_COLORS } from './state.js';
+import { addStoryBunnyDetails } from './art-direction.js';
 
 /**
  * A small, expressive, texture-free virtual bunny.
@@ -125,6 +126,8 @@ export function createBunny(THREE) {
     closed.visible = false;
     return closed;
   });
+
+  addStoryBunnyDetails(THREE, { head, ears, torso, feet, arms });
 
   const dirt = [
     ellipsoid(torso, dirtMaterial, -0.25, 0.13, 0.565, 0.14, 0.11, 0.018, true),
