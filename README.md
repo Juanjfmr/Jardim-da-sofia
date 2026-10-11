@@ -32,6 +32,7 @@ Jogo de bichinho virtual para crianças de **3 a 5 anos**, feito em Three.js 0.1
 - **Formas:** monte a caixa de encaixes do Pipo com 3, 4 ou 5 peças, conforme o desafio. Na primeira visita, ele demonstra como encaixar; o botão “Ver o Pipo” repete a ajuda e “Minha vez” permite começar imediatamente. Dá para tocar ou arrastar até a sombra destacada. Cada peça permanece no lugar e o brinquedo pronto continua visível na comemoração.
 - **Música:** xilofone livre ou “Imitar o Pipo”, com melodias de 2, 3 ou 4 notas.
 - **Plantar:** quatro canteiros que guardam o progresso: semente, broto, crescimento e flor.
+- **Aventuras do Pipo:** no menu Brincar, escolha entre três histórias (O piquenique do Pipo, Uma festa no jardim e O segredo das flores). Cada uma liga três brincadeiras em uma pequena aventura. É possível sair, voltar e continuar do mesmo capítulo, inclusive sem internet. Não há prazo, pontuação extra ou punição por parar.
 
 Prévia de Formas: [caixa de encaixes no celular](docs/previews/formas-celular.jpg) e [brinquedo pronto no celular deitado](docs/previews/formas-concluidas-paisagem.jpg).
 
@@ -65,7 +66,7 @@ npm run build
 npm test
 ```
 
-`npm test` reconstrói `dist` e executa 44 testes: estado, jornada da interface, Formas, vozes, roupas 3D, cozinha por toque e arrasto, persistência, cancelamento de callbacks ao sair do forno e enquadramento do jardim. Os testes de DOM não renderizam WebGL; cozinha e guarda-roupa foram conferidos no navegador em 375×667, 390×844, 844×390 e 820×1180, com alvos de toque de pelo menos 56px e sem rolagem horizontal.
+`npm test` reconstrói `dist` e executa a suíte automatizada: estado, jornada da interface, Formas, vozes, roupas 3D, cozinha por toque e arrasto, persistência, cancelamento de callbacks ao sair do forno e enquadramento do jardim. Os testes de DOM não renderizam WebGL; cozinha e guarda-roupa foram conferidos no navegador em 375×667, 390×844, 844×390 e 820×1180, com alvos de toque de pelo menos 56px e sem rolagem horizontal.
 
 Para jogar localmente, sirva `dist` por HTTP (o jogo usa módulos JavaScript, então `file://` não funciona):
 
