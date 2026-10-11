@@ -9,7 +9,7 @@ Requer Node.js 20 ou posterior.
 ```sh
 npm ci
 npm run build   # gera dist/ (copia src, Three.js, fonte Fredoka e monta o service worker)
-npm test        # reconstrói dist e roda os 44 testes
+npm test        # reconstrói dist e roda os testes automatizados
 python3 -m http.server 8080 --directory dist
 ```
 
@@ -42,7 +42,7 @@ Não abra `index.html` por `file://`: o jogo usa módulos JavaScript. `dist/` n�
 
 ## Validação
 
-Os 44 testes passam. O visual e as interações foram conferidos em Chromium real (Playwright, WebGL por SwiftShader) em 390×844, 375×667, 844×390, 820×1180, 1180×820 e 1280×720. Foram testados: arrastar fruta até a boca, arrastar letra, mola ao soltar fora, estourar bolhas no 3D, banho completo, dica automática, portão dos adultos e tela de descanso. Formas também tem testes de demonstração, tabuleiro persistente, níveis e recompensa única; a escolha de voz tem ranking e interface testados com listas simuladas. A voz depende do aparelho; teste num celular real com som ligado.
+Os testes automatizados passam. O visual e as interações foram conferidos em Chromium real (Playwright, WebGL por SwiftShader) em 390×844, 375×667, 844×390, 820×1180, 1180×820 e 1280×720. Foram testados: arrastar fruta até a boca, arrastar letra, mola ao soltar fora, estourar bolhas no 3D, banho completo, dica automática, portão dos adultos e tela de descanso. Formas também tem testes de demonstração, tabuleiro persistente, níveis e recompensa única; a escolha de voz tem ranking e interface testados com listas simuladas. A voz depende do aparelho; teste num celular real com som ligado.
 
 ## Publicação
 
