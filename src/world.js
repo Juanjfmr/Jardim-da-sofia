@@ -89,6 +89,7 @@ export class GardenWorld {
     this.butterflies = [];
     this.flowers = [];
     this.treeTops = [];
+    this.pinwheels = [];
     this.clouds = [];
     this.fireflies = [];
     this.foam = [];
@@ -173,8 +174,10 @@ export class GardenWorld {
     const m = new THREE.Mesh(this.geometries[type], this.mat(color));
     m.position.set(x, y, z);
     m.scale.set(sx, sy, sz);
-    m.castShadow = true;
-    m.receiveShadow = true;
+    // Miniobjetos quase não produzem sombras legíveis na tela pequena.
+    // Evita renderizá-los novamente no shadow pass do celular.
+    m.castShadow = Math.max(sx, sy, sz) >= 0.38;
+    m.receiveShadow = Math.max(sx, sy, sz) >= 0.32;
     parent.add(m);
     return m;
   }
@@ -187,7 +190,7 @@ export class GardenWorld {
   batchDecorations() {
     this.scene.updateMatrixWorld(true);
     const batches = new Map();
-    const animated = new Set([...this.treeTops, ...this.flowers.slice(0, 4)]);
+    const animated = new Set([...this.treeTops, ...this.flowers.slice(0, 4), ...this.pinwheels]);
     this.environment.traverse(m => {
       if (!m.isMesh || m.userData.action || Array.isArray(m.material)) return;
       let parent = m.parent;
@@ -264,6 +267,8 @@ export class GardenWorld {
     this.makeTree(-3.65, -4.3, 1);
     this.makeTree(4, -1.75, 0.82);
     this.makeGardenDetails();
+    this.makePinwheel(3.58, 4.45);
+    this.makeWateringCan(-2.90, 4.65);
     this.makeHouse(2.28, -3.48);
     this.makeCarrotBed(-2.45, -0.94);
     this.makeLetters(-2.62, 2.01);
@@ -392,6 +397,46 @@ export class GardenWorld {
       pebble.castShadow = false;
     }
   }
+  // Pequenos brinquedos 3D tornam o cenário habitado, sem abrir novos menus.
+  // Apenas a hélice gira; a haste e os detalhes estáticos continuam agrupáveis.
+  makePinwheel(x, z) {
+    const g = new THREE.Group();
+    g.position.set(x, 0, z);
+    this.environment.add(g);
+    this.mesh('cylinder', '#e6c5a0', 0, 0.72, 0, 0.052, 1.38, 0.052, g);
+    const rotor = new THREE.Group();
+    rotor.position.set(0, 1.48, 0.12);
+    g.add(rotor);
+    const petals = ['#f39ca7', '#f2c466', '#91c9a8', '#91bbe9', '#c5a6dd'];
+    for (let i = 0; i < petals.length; i++) {
+      const a = i * Math.PI * 2 / petals.length;
+      const blade = this.mesh('sphere', petals[i],
+        Math.sin(a) * 0.21, Math.cos(a) * 0.21, 0,
+        0.14, 0.275, 0.045, rotor);
+      blade.rotation.z = -a;
+      blade.castShadow = false;
+    }
+    this.mesh('sphere', '#fff0bb', 0, 0, 0.055, 0.12, 0.12, 0.07, rotor).castShadow = false;
+    this.pinwheels.push(rotor);
+  }
+
+  makeWateringCan(x, z) {
+    const g = new THREE.Group();
+    g.position.set(x, 0, z);
+    g.rotation.y = -0.23;
+    this.environment.add(g);
+    this.mesh('cylinder', '#83bed0', 0, 0.34, 0, 0.27, 0.50, 0.27, g);
+    const spout = this.mesh('cylinder', '#83bed0', 0.36, 0.45, 0, 0.085, 0.56, 0.085, g);
+    spout.rotation.z = -Math.PI / 3;
+    this.mesh('sphere', '#d8eef1', 0.59, 0.59, 0, 0.14, 0.07, 0.12, g);
+    const handle = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.052, 8, 24),
+      this.mat('#69a8bc'));
+    handle.position.set(-0.27, 0.40, 0);
+    handle.castShadow = false;
+    g.add(handle);
+    this.mesh('sphere', '#d5e6dd', 0, 0.61, 0, 0.29, 0.052, 0.29, g);
+  }
+
   makeHouse(x, z) {
     const g = new THREE.Group();
     g.position.set(x, 0, z);
@@ -613,10 +658,33 @@ export class GardenWorld {
     grad.addColorStop(1, 'rgba(60,74,41,0)');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, 128, 128);
-    this.shadow = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 2), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false }));
+    const texture = new THREE.CanvasTexture(c);
+    const plane = new THREE.PlaneGeometry(2.5, 2);
+    // A superfície da grama termina em y=0.11. Antes, o círculo de contato
+    // ficava em y=0.017 e era escondido por ela.
+    this.shadow = new THREE.Mesh(plane,
+      new THREE.MeshBasicMaterial({ map: texture, transparent: true,
+        opacity: 0.88, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1 }));
     this.shadow.rotation.x = -Math.PI / 2;
-    this.shadow.position.set(0, 0.017, 0.45);
+    this.shadow.position.set(0, 0.128, 0.45);
+    this.shadow.renderOrder = 1;
     this.scene.add(this.shadow);
+    // Sombras estáticas econômicas dão peso à casinha e às árvores.
+    for (const [x, z, sx, sz, opacity] of [
+      [-3.65, -4.3, 1.35, 1.18, 0.50],
+      [4.00, -1.75, 1.17, 0.95, 0.40],
+      [2.28, -3.48, 1.45, 1.28, 0.40],
+    ]) {
+      const mesh = new THREE.Mesh(plane, new THREE.MeshBasicMaterial({
+        map: texture, transparent: true, opacity, depthWrite: false,
+        polygonOffset: true, polygonOffsetFactor: -1,
+      }));
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.position.set(x, 0.125, z);
+      mesh.scale.set(sx, sz, 1);
+      mesh.renderOrder = 0;
+      this.scene.add(mesh);
+    }
   }
 
   // ---------- Estado, câmera e qualidade ----------
@@ -644,7 +712,15 @@ export class GardenWorld {
     const caps = [1, 1.5, 2];
     this.renderer.setPixelRatio(Math.min(dpr, caps[this.quality]));
     this.renderer.shadowMap.enabled = this.quality > 0;
-    if (this.sun) this.sun.castShadow = this.quality > 0;
+    if (this.sun) {
+      this.sun.castShadow = this.quality > 0;
+      const shadowResolution = this.quality === 2 ? 1024 : 512;
+      if (this.sun.shadow.mapSize.x !== shadowResolution) {
+        this.sun.shadow.map?.dispose();
+        this.sun.shadow.map = null;
+        this.sun.shadow.mapSize.set(shadowResolution, shadowResolution);
+      }
+    }
     if (this.width > 1) this.renderer.setSize(this.width, this.height, false);
   }
   // Se o aparelho não acompanha, baixa a resolução e depois as sombras.
@@ -947,6 +1023,11 @@ export class GardenWorld {
     this.pet.root.position.lerp(this.petTarget, 0.05);
     this.shadow.position.x = this.pet.root.position.x;
     this.shadow.position.z = this.pet.root.position.z;
+    // A sombra encolhe e perde força quando ele pula, reforçando a altura.
+    const elevation = this.pet.getElevation();
+    const airborne = Math.min(1, elevation / 0.45);
+    this.shadow.scale.set(1 - airborne * 0.24, 1 - airborne * 0.24, 1);
+    this.shadow.material.opacity = 0.88 - airborne * 0.42;
     this.pet.root.rotation.y = 0.18 + Math.sin(this.time * 0.22) * 0.07;
 
     for (const b of this.butterflies) {
@@ -956,6 +1037,7 @@ export class GardenWorld {
     }
     for (const f of this.flowers) f.rotation.z = Math.sin(this.time * 1.3 + f.position.x) * 0.025;
     for (const t of this.treeTops) t.rotation.z = Math.sin(this.time * 0.5 + t.position.x) * 0.015;
+    for (const rotor of this.pinwheels) rotor.rotation.z = Math.sin(this.time * 0.42) * 0.18 + this.time * 0.38;
     for (const c of this.clouds) {
       c.position.x += c.userData.speed * dt;
       if (c.position.x > 11) c.position.x = -11;
