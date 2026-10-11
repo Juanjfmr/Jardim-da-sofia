@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from '../dist/vendor/three.module.js';
 import { GardenWorld } from '../dist/world.js';
-import { makeStoryTree, makeStoryCottage, decorateStoryGarden } from '../dist/art-direction.js';
+import { makeStoryTree, makeStoryCottage, decorateStoryGarden, addStoryProps } from '../dist/art-direction.js';
 import { createBunny } from '../dist/pet.js';
 
 function fakeWorld() {
@@ -64,4 +64,22 @@ test('Pipo: as novas camadas de pelo não interrompem roupas ou reações', () =
     count.push(pipo.root.children.length);
   }
   assert.ok(count.every(c => c === count[0]), 'não anexa novos objetos a cada troca');
+});
+
+test('os adereços do jardim são detalhados e nunca roubam toques das atividades', () => {
+  const world = fakeWorld();
+  const props = addStoryProps(world, THREE);
+  assert.equal(props.name, 'Cantinhos do livro');
+  assert.equal(props.children.length, 2);
+  assert.equal(props.getObjectByName('Casa de passarinhos')?.children.length > 5, true);
+  assert.equal(props.getObjectByName('Regador do Pipo')?.children.length > 5, true);
+  assert.equal(world.targets.length, 0, 'elementos de decoração não criam hitboxes');
+  props.updateMatrixWorld(true);
+  props.traverse(node => {
+    assert.ok(node.matrixWorld.elements.every(Number.isFinite));
+    if (node.isMesh) {
+      assert.equal(node.userData.action, undefined);
+      assert.ok(node.geometry.boundingSphere === null || node.geometry.boundingSphere.radius >= 0);
+    }
+  });
 });
