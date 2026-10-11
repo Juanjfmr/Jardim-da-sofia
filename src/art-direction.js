@@ -301,3 +301,43 @@ export function addStoryBunnyDetails(THREE,{head,ears,torso,feet,arms}){
     for(let i=-1;i<=1;i++)tuft(arm,cream,[i*0.055,-0.45,0.24],[0.052,0.07,0.07]);
   }
 }
+
+
+/** Pequenos objetos cenográficos que dão escala ao jardim e criam pontos de atenção.
+ *  Deliberadamente não interativos: não substituem os botões das atividades. */
+export function addStoryProps(world, THREE) {
+  const props = new THREE.Group();
+  props.name = 'Cantinhos do livro';
+  world.environment.add(props);
+
+  // Casa de passarinhos ao lado da cerca, com poleiro.
+  const birdhouse = new THREE.Group();
+  birdhouse.name = 'Casa de passarinhos';
+  birdhouse.position.set(3.79, 0, 3.38);
+  props.add(birdhouse);
+  world.mesh('cylinder', '#b78d70', 0, 0.70, 0, 0.068, 0.70, 0.068, birdhouse);
+  world.mesh('box', '#f9e4c3', 0, 1.52, 0, 0.42, 0.43, 0.30, birdhouse);
+  const roof = world.mesh('cone', '#dd8990', 0, 1.91, 0, 0.43, 0.33, 0.38, birdhouse);
+  roof.rotation.y = Math.PI / 4;
+  world.mesh('sphere', '#765e53', 0, 1.56, 0.164, 0.092, 0.088, 0.026, birdhouse);
+  world.mesh('cylinder', '#cba282', 0, 1.36, 0.25, 0.03, 0.24, 0.03, birdhouse).rotation.x = Math.PI / 2;
+  world.mesh('sphere', '#f6c5aa', 0.16, 1.91, 0.11, 0.12, 0.11, 0.13, birdhouse);
+
+  // Regador junto à horta: forma reconhecível, sem novos controles.
+  const can = new THREE.Group();
+  can.name = 'Regador do Pipo';
+  can.position.set(-0.63, 0, 4.15);
+  props.add(can);
+  world.mesh('cylinder', '#91c6be', 0, 0.24, 0, 0.25, 0.23, 0.21, can);
+  world.mesh('sphere', '#e7f6de', 0, 0.47, 0, 0.20, 0.046, 0.20, can);
+  beam(world, THREE, can, [0.18,0.36,0],[0.43,0.52,0],0.045,'#80b1a7',0.038);
+  world.mesh('cone', '#e7d79b', 0.47, 0.54, 0, 0.10, 0.12, 0.10, can).rotation.z = -Math.PI / 2;
+  beam(world, THREE, can, [-0.20,0.16,0],[-0.39,0.26,0],0.038,'#7ab0a7',0.038);
+  beam(world, THREE, can, [-0.39,0.26,0],[-0.28,0.44,0],0.038,'#7ab0a7',0.038);
+  for (let i=0; i<3; i++) {
+    const d=world.mesh('sphere','#b7e4e5',0.53+i*0.10,0.42-i*0.12,0,0.034,0.047,0.028,can);
+    d.castShadow=false;
+  }
+
+  return props;
+}
