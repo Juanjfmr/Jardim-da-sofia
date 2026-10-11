@@ -1,41 +1,76 @@
-/* Missão da trilha: tabuleiro vivo e gestos, sem substituir o jardim 3D. */
-#activity-modal[data-activity="trail"] .activity-card{max-width:930px;background:linear-gradient(180deg,#e5f1d9 0,#fffbee 190px)}
-#activity-modal[data-activity="trail"] #activity-body{justify-content:flex-start;padding:8px 10px 12px}
-#activity-modal[data-activity="trail"] .instruction{flex-shrink:0}
-.trail-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;min-height:min-content}
-.trail-ribbon{width:min(100%,680px);display:flex;justify-content:space-between;align-items:center;gap:12px;padding:7px 15px;
-  border-radius:18px;background:linear-gradient(120deg,#fffdf3,#e3f1d6);box-shadow:0 3px 0 rgba(99,127,88,.09);color:#45684e}
-.trail-chapter{font-size:clamp(14px,3.8vw,19px);font-weight:700;line-height:1.15}
-.trail-progress{flex-shrink:0;font-size:20px;color:#e3a34c;letter-spacing:4px;white-space:nowrap}
-.trail-board{position:relative;width:min(100%,680px);aspect-ratio:700 / 580;overflow:hidden;border-radius:24px;
-  border:5px solid #fff9ea;box-shadow:inset 0 4px 6px rgba(66,91,75,.12),0 8px 0 #c6ddbb,0 13px 20px rgba(62,108,80,.2);
-  background:#bfe5ec;isolation:isolate}
-.trail-canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair;outline-offset:-5px}
+/* Missão da Trilha: o cenário é a tela de jogo, não um cartão cercado de espaço vazio. */
+#activity-modal[data-activity="trail"]{padding:0;background:#234d45}
+#activity-modal[data-activity="trail"] .activity-card{
+  max-width:none;width:100%;max-height:none;height:100%;border:0;border-radius:0;
+  box-shadow:none;background:#d4e8cc;animation:none
+}
+#activity-modal[data-activity="trail"] .activity-header{
+  position:relative;z-index:4;flex-shrink:0;padding:calc(7px + env(safe-area-inset-top,0px)) 14px 7px;
+  background:linear-gradient(180deg,rgba(255,251,233,.98),rgba(246,248,232,.96));
+  box-shadow:0 3px 14px rgba(45,76,57,.12)
+}
+#activity-modal[data-activity="trail"] .activity-heading .eyebrow{font-size:10px;letter-spacing:1.2px}
+#activity-modal[data-activity="trail"] .activity-heading h2{font-size:21px}
+#activity-modal[data-activity="trail"] .activity-header .round-btn{width:50px;height:50px;flex-shrink:0}
+#activity-modal[data-activity="trail"] .instruction{
+  position:relative;z-index:3;flex-shrink:0;min-height:0;margin:0;
+  padding:7px 18px 7px 10px;border-radius:0;border:0;border-bottom:2px solid #fff;
+  background:linear-gradient(100deg,#fdfbef,#eff6e5);box-shadow:0 5px 12px rgba(38,87,54,.08);
+}
+#activity-modal[data-activity="trail"] .instruction-avatar{width:38px;height:38px}
+#activity-modal[data-activity="trail"] #activity-instruction{
+  font-size:clamp(14px,3.55vw,18px);line-height:1.17;max-height:3.55em;overflow:hidden;
+}
+#activity-modal[data-activity="trail"] #activity-body{
+  flex:1;min-height:0;overflow:hidden;padding:0;display:block;
+  background:#a1c89b
+}
+#activity-modal[data-activity="trail"] #activity-footer:empty{display:none}
+.trail-wrap{position:relative;display:block;width:100%;height:100%;min-height:0;overflow:hidden}
+.trail-board{position:absolute;inset:0;width:100%;height:100%;overflow:hidden;background:#b3dad3;isolation:isolate}
+.trail-canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair;outline-offset:-5px}
 .trail-canvas:focus-visible{outline:4px solid #25618a}
-.trail-toast{pointer-events:none;position:absolute;top:18%;left:50%;transform:translate(-50%,0);
+.trail-ribbon{
+  position:absolute;z-index:2;top:12px;left:50%;transform:translateX(-50%);
+  width:min(calc(100% - 32px),470px);display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:9px 17px;border-radius:22px;border:2px solid rgba(255,255,255,.91);
+  background:rgba(255,255,242,.92);box-shadow:0 6px 19px rgba(45,86,61,.18);
+  color:#3d6049;pointer-events:none
+}
+.trail-chapter{font-size:clamp(14px,3.8vw,19px);font-weight:700;line-height:1.15}
+.trail-progress{font-size:19px;color:#dc9644;letter-spacing:3px;white-space:nowrap}
+.trail-toast{pointer-events:none;position:absolute;z-index:2;top:30%;left:50%;transform:translate(-50%,0);
   max-width:88%;min-width:180px;text-align:center;font-weight:700;font-size:18px;line-height:1.25;
   color:#42604b;padding:11px 17px;border-radius:22px;border:3px solid white;
   background:rgba(255,254,239,.96);box-shadow:0 7px 20px rgba(57,85,62,.22);animation:pop-in .2s ease-out}
 .trail-toast[hidden]{display:none}
-.trail-actions{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:9px;padding-bottom:7px;width:100%}
-.trail-actions button{min-height:49px;padding:8px 17px;border:3px solid #fff;border-radius:24px;
-  background:linear-gradient(165deg,#fff,#edf7df);box-shadow:inset 0 -4px 0 rgba(66,100,65,.07),0 3px 8px rgba(55,76,59,.12);
-  color:#466f50;font-size:16px;font-weight:700}
-.trail-actions .trail-next{background:linear-gradient(180deg,#8edb95,#65b47e);color:#204e36;font-size:19px}
-.trail-actions .trail-alternate{background:linear-gradient(180deg,#e8e2fd,#ded6f8);color:#58518b}
-.trail-actions button:focus-visible{outline:4px solid #2f7ea8}
-@media(orientation:landscape) and (max-height:540px){
- #activity-modal[data-activity="trail"] .activity-header{padding:4px 9px 2px}
- #activity-modal[data-activity="trail"] .instruction{margin:0 8px;padding:3px 9px;min-height:0}
- #activity-modal[data-activity="trail"] .instruction-avatar{width:35px;height:35px}
- #activity-modal[data-activity="trail"] #activity-instruction{font-size:13px}
- #activity-modal[data-activity="trail"] #activity-body{padding:2px 8px}
- .trail-wrap{gap:4px}
- .trail-ribbon{padding:3px 10px;font-size:13px}
- .trail-chapter{font-size:14px}
- .trail-progress{font-size:14px}
- .trail-board{width:min(100%,calc((100dvh - 158px) * 700 / 580));min-width:205px;border-width:3px;border-radius:15px}
- .trail-actions button{min-height:40px;padding:5px 13px;font-size:13px}
- .trail-actions{gap:5px}
+.trail-actions{
+  position:absolute;z-index:4;bottom:calc(13px + env(safe-area-inset-bottom,0px));left:12px;right:12px;
+  display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:9px;
 }
-@media(prefers-reduced-motion:reduce){.trail-toast{animation:none}.trail-board,.trail-actions button{transition:none}}
+.trail-actions button{
+  min-height:54px;min-width:130px;padding:8px 16px;border:3px solid white;border-radius:28px;
+  background:linear-gradient(165deg,#fff,#e9f4d9);box-shadow:0 5px 0 rgba(36,85,57,.18),0 8px 24px rgba(39,75,50,.28);
+  color:#385e43;font-size:17px;font-weight:700
+}
+.trail-actions .trail-next{background:linear-gradient(180deg,#a5e9aa,#66b881);color:#204e36}
+.trail-actions .trail-alternate{background:linear-gradient(180deg,#eae6ff,#d8cff6);color:#58518b}
+.trail-actions button:focus-visible{outline:4px solid #2f7ea8}
+#activity-modal[data-activity="trail"] .trail-finished #activity-body{
+  padding:22px;display:flex;justify-content:center;align-items:center;background:linear-gradient(180deg,#e2f2dd,#fff9ec)
+}
+#activity-modal[data-activity="trail"] .trail-finished #activity-footer{padding:8px 12px calc(18px + env(safe-area-inset-bottom,0px))}
+@media (orientation:landscape) and (max-height:540px){
+ #activity-modal[data-activity="trail"] .activity-header{padding:2px 10px}
+ #activity-modal[data-activity="trail"] .activity-header .round-btn{width:39px;height:39px}
+ #activity-modal[data-activity="trail"] .activity-heading h2{font-size:17px}
+ #activity-modal[data-activity="trail"] .activity-heading .eyebrow{display:none}
+ #activity-modal[data-activity="trail"] .instruction{padding:2px 10px}
+ #activity-modal[data-activity="trail"] .instruction-avatar{width:28px;height:28px}
+ #activity-modal[data-activity="trail"] #activity-instruction{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .trail-ribbon{top:5px;padding:3px 11px;width:min(340px,55%)}
+ .trail-chapter,.trail-progress{font-size:13px}
+ .trail-actions{bottom:5px;gap:5px}
+ .trail-actions button{min-height:41px;min-width:112px;padding:4px 10px;font-size:13px}
+}
+@media (prefers-reduced-motion:reduce){.trail-toast{animation:none}.trail-actions button{transition:none}}
