@@ -51,6 +51,8 @@ await writeFile(path.join(dist, '_headers'), [
 const files = (await listFiles(dist)).filter(f => !['_headers', 'robots.txt'].includes(f) && !f.endsWith('.txt'));
 const hash = createHash('sha256');
 for (const f of files) hash.update(f).update(await readFile(path.join(dist, f)));
+// Alterar apenas o service worker também deve gerar uma versão nova do cache.
+hash.update(await readFile(path.join(src, 'sw.js')));
 const version = hash.digest('hex').slice(0, 12);
 const sw = (await readFile(path.join(src, 'sw.js'), 'utf8'))
   .replace('__VERSION__', version)
