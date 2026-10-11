@@ -465,7 +465,7 @@ export function createBunny(THREE) {
       const side = i === 0 ? -1 : 1;
       // Mola amortecida: a orelha chega atrasada em relação à cabeça.
       // Em vez de somar oscilações rígidas, há aceleração e amortecimento.
-      const earTarget = side * (-0.21 - (i === 1 ? 0.19))
+      const earTarget = side * (-0.21 - (i === 1 ? 0.19 : 0))
         + side * sleepBlend * 0.14 + Math.sin(clock * 1.5 + i * 1.7) * 0.055
         + bath * Math.sin(reactionAge * 23 + i) * 0.12
         + happy * Math.sin(reactionAge * 10 + i) * 0.07
