@@ -7,6 +7,7 @@ import { ADVENTURES, adventureProgress, startAdventure, recordAdventureActivity 
 import { responseToTouch } from './pipo-behaviors.js';
 import { createKitchen } from './kitchen.js';
 import { createWardrobe } from './wardrobe.js';
+import { setupVisitorUI } from './visitor-ui.js';
 import {
   SAVE_KEY, ACCESSORIES, initialState, sanitizeState, sanitizeName, unlockedAccessories,
   care, reward, tick, currentNeed, addPlayTime, timeIsUp, todayKey,
@@ -19,6 +20,7 @@ let state;
 try { state = sanitizeState(JSON.parse(localStorage.getItem(SAVE_KEY))); } catch { state = initialState(); }
 const audio = new GardenAudio();
 let world = null;
+let visitorsUI = null;
 let started = false;
 let mode = 'home';
 let current = null;
@@ -130,6 +132,7 @@ function sync() {
   }
   $('app').classList.toggle('night', state.sleeping);
   $('pipo-places').hidden = !started || mode !== 'home' || anyOverlayOpen();
+  visitorsUI?.updateVisibility();
   if (world) world.setState(state);
   updateNeed();
   save();
@@ -886,6 +889,7 @@ function start() {
 
 buildDock();
 setupWorld();
+visitorsUI = setupVisitorUI({ getWorld: () => world, getMode: () => mode, say: text => say(text) });
 renderTitle();
 
 $('start-btn').addEventListener('click', start);
