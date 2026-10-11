@@ -50,26 +50,16 @@ export function addArtStamp(state, scene, symbol, x, y) {
   const art = getArtwork(state, scene);
   return saveArtwork(state, scene, { ...art, stamps: [...art.stamps, { symbol, x, y }].slice(-MAX_STAMPS) });
 }
-export function undoArtwork(state, scene) {
+export function replaceArtwork(state, scene, value) {
   if (!SCENE_IDS.includes(scene)) return state;
-  const art = getArtwork(state, scene);
-  // Histórico linear simples: a última ação é removida; cada pincelada ou carimbo é uma ação.
-  const history = Array.isArray(state.artHistory?.[scene]) ? state.artHistory[scene] : null;
-  if (!history?.length) return state;
-  const previous = history[history.length - 1];
-  return { ...saveArtwork(state, scene, previous), artHistory: { ...state.artHistory, [scene]: history.slice(0, -1) } };
+  return saveArtwork(state, scene, value);
 }
-export function updateArtwork(state, scene, kind, payload) {
+export function updateArtwork(state, scene, kind, payload = {}) {
   if (!SCENE_IDS.includes(scene)) return state;
-  const before = getArtwork(state, scene);
-  let after = state;
-  if (kind === 'line') after = addPaintLine(state, scene, payload.color, payload.points);
-  if (kind === 'stamp') after = addArtStamp(state, scene, payload.symbol, payload.x, payload.y);
-  if (kind === 'clear') after = saveArtwork(state, scene, { lines: [], stamps: [] });
-  if (after === state || JSON.stringify(getArtwork(after, scene)) === JSON.stringify(before)) return state;
-  // Histórico temporário, não persistido: mantido só enquanto o aplicativo está aberto.
-  const previous = (state.artHistory?.[scene] || []).slice(-11);
-  return { ...after, artHistory: { ...state.artHistory, [scene]: [...previous, before] } };
+  if (kind === 'line') return addPaintLine(state, scene, payload.color, payload.points);
+  if (kind === 'stamp') return addArtStamp(state, scene, payload.symbol, payload.x, payload.y);
+  if (kind === 'clear') return saveArtwork(state, scene, { lines: [], stamps: [] });
+  return state;
 }
 export function artworkHasContent(art) { return !!(art.lines.length || art.stamps.length); }
 
