@@ -1,0 +1,46 @@
+/* Extensão familiar local: importador exclusivo do adulto e botões infantis. */
+.visitor-buttons {
+  position:absolute; z-index:6; top:96px; left:50%;
+  transform:translateX(-50%);
+  width: min(96%,540px); display:flex; gap:8px; justify-content:center;
+  padding:4px; pointer-events:none;
+}
+.visitor-choice {
+  pointer-events:auto; display:flex; align-items:center; justify-content:center;
+  min-width:68px; min-height:52px; padding:7px 12px;
+  border:3px solid #fff; border-radius:22px;
+  background:#fffaf0; font-size:16px; font-weight:600;
+  box-shadow:0 5px 12px rgba(52,84,64,.17);
+}
+.visitor-choice[aria-pressed="true"] {
+  background:#e4f4d7; outline:3px solid #5bab74; outline-offset:1px;
+}
+.visitor-settings { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:12px; }
+.visitor-setting {
+  background:#fff9ee; border:2px solid #e8dfcd; border-radius:20px;
+  padding:12px; display:flex; flex-direction:column; gap:7px;
+}
+.visitor-setting-name {font-weight:650; font-size:17px;}
+.visitor-setting-caption {font-size:12px; line-height:1.3; color:#647265;}
+.visitor-setting-actions {display:flex; gap:6px; flex-wrap:wrap;}
+.visitor-import,.visitor-remove {
+  border-radius:16px; padding:10px 12px; background:#deefd5;
+  color:#315b40; font-weight:650; min-height:45px;
+}
+.visitor-remove {background:#f7e0da; color:#975b55;}
+.visitor-import:disabled {opacity:.45;}
+#visitor-status { min-height:18px; }
+@media (max-width:440px) {
+  .visitor-settings { grid-template-columns:1fr 1fr; gap:7px;}
+  .visitor-setting { padding:10px 7px; }
+  .visitor-setting-name { font-size:15px; }
+  .visitor-import,.visitor-remove {padding:8px; font-size:12px;}
+  .visitor-choice { min-width:59px; min-height:48px; font-size:14px; padding:5px 9px; }
+}
+@media (max-height:520px) and (orientation:landscape) {
+  .visitor-buttons {left:auto;right:8px;top:6px;transform:none;width:50%;flex-wrap:wrap;justify-content:flex-end; }
+  .visitor-choice {min-height:42px;font-size:13px;min-width:50px;padding:4px 8px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .visitor-choice {transition:none!important;}
+}
