@@ -27,6 +27,39 @@ async function listFiles(dir, base = dir) {
 await rm(dist, { recursive: true, force: true });
 await copyDir(src, dist);
 
+// Opcional: pacote de quatro modelos privados para APK familiar.
+// FAMILY_MODEL_DIR aponta para uma pasta LOCAL, não versionada; os GLB não
+// entram no GitHub nem são buscados em servidores de terceiros.
+const familyModelDir = process.env.FAMILY_MODEL_DIR;
+if (familyModelDir) {
+  const folder = path.resolve(familyModelDir);
+  const ids = ['chase', 'marshall', 'skye', 'rubble'];
+  const out = path.join(dist, 'family-models');
+  await mkdir(out, { recursive: true });
+  for (const id of ids) {
+    const bytes = await readFile(path.join(folder, id + '.glb'));
+    if (bytes.length < 20 || bytes.length > 15 * 1024 * 1024
+        || bytes.toString('ascii', 0, 4) !== 'glTF'
+        || bytes.readUInt32LE(4) !== 2
+        || bytes.readUInt32LE(8) !== bytes.length
+        || bytes.readUInt32LE(16) !== 0x4e4f534a) {
+      throw new Error('GLB 2.0 inválido ou grande demais: ' + id);
+    }
+    const jsonSize = bytes.readUInt32LE(12);
+    if (jsonSize < 2 || jsonSize > 2_000_000 || jsonSize + 20 > bytes.length) {
+      throw new Error('Descrição inválida: ' + id);
+    }
+    const gltf = JSON.parse(bytes.toString('utf8', 20, 20 + jsonSize));
+    if (!String(gltf.asset?.version || '').startsWith('2.')) throw new Error('Versão glTF inválida: ' + id);
+    if ([...(gltf.buffers || []), ...(gltf.images || [])].some(x => x.uri && !x.uri.startsWith('data:'))) {
+      throw new Error('Texturas ou buffers externos não são permitidos: ' + id);
+    }
+    await writeFile(path.join(out, id + '.glb'), bytes);
+  }
+  await writeFile(path.join(out, 'manifest.json'), JSON.stringify({ version: 1, ids }));
+  console.log('Pacote familiar: quatro modelos 3D incorporados, sem upload ao repositório.');
+}
+
 // Bibliotecas locais: Three.js e a fonte Fredoka (sem CDN).
 await mkdir(path.join(dist, 'vendor'), { recursive: true });
 for (const file of ['three.module.js', 'three.core.js']) await copyFile(path.join(root, 'node_modules/three/build', file), path.join(dist, 'vendor', file));
@@ -66,7 +99,8 @@ hash.update(await readFile(path.join(src, 'sw.js')));
 const version = hash.digest('hex').slice(0, 12);
 const sw = (await readFile(path.join(src, 'sw.js'), 'utf8'))
   .replace('__VERSION__', version)
-  .replace('__ASSETS__', JSON.stringify(['./', ...files.map(f => './' + f)]));
+  // Modelos grandes já pertencem ao APK, não devem ocupar também o cache do SW.
+  .replace('__ASSETS__', JSON.stringify(['./', ...files.filter(f => !f.startsWith('family-models/')).map(f => './' + f)]));
 await writeFile(path.join(dist, 'sw.js'), sw);
 
 console.log('Jardim: ' + files.length + ' arquivos prontos em dist (versão ' + version + ').');
