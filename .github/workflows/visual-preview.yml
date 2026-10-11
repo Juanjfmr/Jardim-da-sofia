@@ -1,0 +1,42 @@
+# Capturas reais da cena 3D para cada revisão de personagem/cenário.
+# Não publica nada e não substitui o workflow de testes existente.
+name: Revisão visual 3D
+
+on:
+  pull_request:
+    paths:
+      - 'src/world.js'
+      - 'src/pet.js'
+      - 'scripts/visual-smoke.mjs'
+      - '.github/workflows/visual-preview.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    name: WebGL em celular e tablet
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Preparar navegador
+        run: |
+          npm install --no-save --package-lock=false playwright@1.57.0
+          npx playwright install --with-deps chromium
+      - name: Renderizar e capturar telas
+        run: node scripts/visual-smoke.mjs
+      - name: Guardar capturas para revisão
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jardim-3d-mobile-tablet
+          path: visual-previews/*.png
+          if-no-files-found: ignore

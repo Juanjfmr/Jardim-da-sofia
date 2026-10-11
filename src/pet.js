@@ -10,18 +10,25 @@ export function createBunny(THREE) {
   const rig = new THREE.Group();
   root.add(rig);
 
-  const sphere = new THREE.SphereGeometry(1, 24, 16);
-  const smallSphere = new THREE.SphereGeometry(1, 16, 12);
+  // Superfícies mais suaves com a mesma geometria compartilhada entre as peças.
+  // Sem texturas ou carregamentos extras: continua leve para celulares.
+  const sphere = new THREE.SphereGeometry(1, 32, 24);
+  const smallSphere = new THREE.SphereGeometry(1, 20, 16);
   const material = (color, roughness = 0.82) => new THREE.MeshStandardMaterial({
     color, roughness, metalness: 0,
   });
-  const cream = material('#fff1d6');
-  const ivory = material('#fff9eb');
-  const pink = material('#ecacba');
-  const blush = material('#f3b7be');
-  const nosePink = material('#d98d9e', 0.56);
-  const ink = material('#42312e', 0.39);
-  const glint = material('#ffffff', 0.26);
+  // Pêlo com contraste quente e olhos com camadas em vez de pontos planos.
+  const cream = material('#f8e9d2', 0.96);
+  const ivory = material('#fff9ed', 0.92);
+  const pink = material('#e99da9', 0.92);
+  const innerEarLight = material('#f5bdc5', 0.95);
+  const blush = material('#f4aeb3', 0.92);
+  const nosePink = material('#d98091', 0.46);
+  const ink = material('#302d37', 0.25);
+  const iris = material('#825b53', 0.32);
+  const glint = new THREE.MeshBasicMaterial({ color: '#ffffff' });
+  const eyelid = material('#e5c5b0', 0.95);
+  const whisker = material('#c5a89b', 1);
   const yellow = material('#ffc954');
   const coral = material('#ee8ba5');
   const mint = material('#85bc91');
@@ -60,6 +67,10 @@ export function createBunny(THREE) {
     rig.add(foot);
     ellipsoid(foot, cream, 0, 0, 0, 0.34, 0.235, 0.43);
     ellipsoid(foot, pink, 0, 0.085, 0.363, 0.135, 0.095, 0.026, true);
+    // Dedinhos sutis, legíveis mesmo com o Pipo pequeno na tela.
+    for (const x of [-0.18, 0, 0.18]) {
+      ellipsoid(foot, ivory, x, 0.15, 0.337, 0.077, 0.056, 0.083, true);
+    }
     return foot;
   });
 
@@ -76,13 +87,19 @@ export function createBunny(THREE) {
   head.position.set(0, 1.98, 0.035);
   rig.add(head);
   ellipsoid(head, cream, 0, 0, 0, 0.86, 0.72, 0.645);
+  // Bochechas com volume próprio quebram o aspecto de esfera perfeita.
+  for (const side of [-1, 1]) {
+    const tuft = ellipsoid(head, cream, side * 0.70, -0.245, 0.345, 0.23, 0.18, 0.24, true);
+    tuft.rotation.z = side * 0.19;
+  }
 
   const ears = [-1, 1].map(side => {
     const ear = new THREE.Group();
     ear.position.set(side * 0.47, 0.52, -0.055);
     head.add(ear);
     ellipsoid(ear, cream, 0, 0.47, 0, 0.205, 0.66, 0.17);
-    ellipsoid(ear, pink, 0, 0.47, 0.149, 0.112, 0.525, 0.032);
+    ellipsoid(ear, pink, 0, 0.47, 0.153, 0.126, 0.505, 0.047);
+    ellipsoid(ear, innerEarLight, -0.022, 0.58, 0.195, 0.055, 0.275, 0.013, true);
     return ear;
   });
 
@@ -92,6 +109,17 @@ export function createBunny(THREE) {
   ellipsoid(muzzle, ivory, 0.225, -0.235, 0.568, 0.295, 0.228, 0.165);
   ellipsoid(head, blush, -0.52, -0.14, 0.506, 0.155, 0.095, 0.024, true);
   ellipsoid(head, blush, 0.52, -0.14, 0.506, 0.155, 0.095, 0.024, true);
+  // Pelinhos ao redor do focinho acrescentam identidade sem texturas 2D.
+  for (const side of [-1, 1]) {
+    for (const height of [-0.265, -0.345]) {
+      const yOffset = height === -0.265 ? 0.07 : -0.07;
+      stroke(head, [
+        [side * 0.29, height, 0.697],
+        [side * 0.47, height + yOffset * 0.25, 0.666],
+        [side * 0.63, height + yOffset, 0.554],
+      ], 0.006, whisker);
+    }
+  }
   ellipsoid(muzzle, nosePink, 0, -0.155, 0.748, 0.083, 0.055, 0.038, true);
   // Boca que abre para comer e bocejar (fechada fica invisível).
   const mouth = new THREE.Group();
@@ -107,13 +135,29 @@ export function createBunny(THREE) {
     [0, -0.286, 0.742], [0.085, -0.336, 0.736], [0.142, -0.288, 0.716],
   ], 0.014);
 
+  const pupils = [];
+  const eyebrows = [];
   const eyes = [-1, 1].map(side => {
     const eye = new THREE.Group();
     eye.position.set(side * 0.282, 0.13, 0.585);
     head.add(eye);
-    ellipsoid(eye, ink, 0, 0, 0, 0.098, 0.154, 0.057);
-    ellipsoid(eye, glint, -0.025, 0.045, 0.051, 0.028, 0.036, 0.010, true);
-    ellipsoid(eye, glint, 0.030, -0.043, 0.052, 0.012, 0.016, 0.006, true);
+    // Uma borda quente faz o olho ler mesmo com a câmera distante.
+    ellipsoid(eye, eyelid, 0, 0, -0.016, 0.134, 0.180, 0.056);
+    ellipsoid(eye, ink, 0, 0, 0.013, 0.116, 0.163, 0.061);
+    const pupil = new THREE.Group();
+    pupil.name = side === -1 ? 'pipo-pupil-left' : 'pipo-pupil-right';
+    eye.add(pupil);
+    ellipsoid(pupil, iris, 0, -0.015, 0.078, 0.078, 0.122, 0.023, true);
+    ellipsoid(pupil, ink, 0, -0.019, 0.098, 0.048, 0.097, 0.015, true);
+    ellipsoid(pupil, glint, -0.034, 0.059, 0.105, 0.027, 0.033, 0.009, true);
+    ellipsoid(pupil, glint, 0.038, -0.053, 0.105, 0.012, 0.017, 0.006, true);
+    pupils.push(pupil);
+    const brow = stroke(head, [
+      [side * 0.17, 0.40, 0.53],
+      [side * 0.28, 0.43, 0.55],
+      [side * 0.38, 0.40, 0.52],
+    ], 0.012, eyelid);
+    eyebrows.push(brow);
     return eye;
   });
   const closedEyes = [-1, 1].map(side => {
@@ -335,6 +379,8 @@ export function createBunny(THREE) {
   let lookYaw = 0, lookPitch = 0, lookYawTarget = 0, lookPitchTarget = 0;
   let mouthWanted = 0, mouthBlend = 0;
   let squashAge = 9;
+  const earAngles = [0, 0];
+  const earVelocities = [0, 0];
 
   // Para onde o Pipo olha (radianos relativos à frente); null volta ao centro.
   function setLook(yaw, pitch) {
@@ -390,10 +436,14 @@ export function createBunny(THREE) {
 
     sleepBlend += ((sleeping ? 1 : 0) - sleepBlend) * (1 - Math.exp(-dt * 5));
     const breath = Math.sin(clock * (sleeping ? 1.7 : 2.6)) * 0.013;
+    // Movimento imperceptível isoladamente, mas tira a rigidez da pose parada.
+    const idleNod = (1 - sleepBlend) * Math.sin(clock * 0.82) * 0.018;
     const jump = hop * 0.44 + happy * bounce * 0.14 + dance * bounce * 0.19;
     rig.position.y = jump - sleepBlend * 0.075;
     rig.rotation.x = bath * Math.sin(reactionAge * 16) * 0.035;
-    rig.rotation.z = sleepBlend * 0.035 + dance * Math.sin(reactionAge * 8) * 0.115 + giggle * Math.sin(reactionAge * 30) * 0.05;
+    rig.rotation.z = sleepBlend * 0.035 + dance * Math.sin(reactionAge * 8) * 0.115
+      + giggle * Math.sin(reactionAge * 30) * 0.05
+      + (1 - sleepBlend) * Math.sin(clock * 1.15) * 0.012;
     const ease = spinT < 0.5 ? 2 * spinT * spinT : 1 - Math.pow(-2 * spinT + 2, 2) / 2;
     rig.rotation.y = ease * Math.PI * 2;
     rig.scale.set(1 + squash * 0.55, 1 - squash, 1 + squash * 0.55);
@@ -401,7 +451,7 @@ export function createBunny(THREE) {
     torso.position.y = 0.93 - sleepBlend * 0.07;
     head.position.y = 1.98 - sleepBlend * 0.18 - pet * 0.045;
     const awake = 1 - sleepBlend;
-    head.rotation.x = sleepBlend * 0.18 + eat * Math.sin(reactionAge * 11) * 0.045 - happy * 0.05 - yawn * 0.22 - lookPitch * awake;
+    head.rotation.x = sleepBlend * 0.18 + eat * Math.sin(reactionAge * 11) * 0.045 - happy * 0.05 - yawn * 0.22 - lookPitch * awake + idleNod;
     head.rotation.y = wobble * 0.035 + bath * Math.sin(reactionAge * 24) * 0.18 + no * Math.sin(reactionAge * 15) * 0.32 + lookYaw * awake;
     head.rotation.z = sleepBlend * 0.06 + pet * 0.075 + dance * Math.sin(reactionAge * 7) * 0.14 + wobble * 0.012 + giggle * Math.sin(reactionAge * 24) * 0.09;
     muzzle.scale.set(1 + eat * Math.sin(reactionAge * 16) * 0.035, 1 - eat * Math.sin(reactionAge * 16) * 0.045, 1);
@@ -413,17 +463,30 @@ export function createBunny(THREE) {
 
     for (let i = 0; i < 2; i++) {
       const side = i === 0 ? -1 : 1;
-      ears[i].rotation.z = side * (-0.21 - (i === 1 ? 0.19 : 0))
-        + side * sleepBlend * 0.14 + Math.sin(clock * 2.3 + i) * 0.035
+      // Mola amortecida: a orelha chega atrasada em relação à cabeça.
+      // Em vez de somar oscilações rígidas, há aceleração e amortecimento.
+      const earTarget = side * (-0.21 - (i === 1 ? 0.19 : 0))
+        + side * sleepBlend * 0.14 + Math.sin(clock * 1.5 + i * 1.7) * 0.055
         + bath * Math.sin(reactionAge * 23 + i) * 0.12
-        + happy * Math.sin(reactionAge * 10 + i) * 0.07;
+        + happy * Math.sin(reactionAge * 10 + i) * 0.07
+        + head.rotation.z * 0.25;
+      const acceleration = (earTarget - earAngles[i]) * 55 - earVelocities[i] * 13;
+      earVelocities[i] += acceleration * dt;
+      earAngles[i] += earVelocities[i] * dt;
+      ears[i].rotation.z = earAngles[i];
       ears[i].rotation.x = -0.08 + sleepBlend * 0.15 + pet * 0.08 + dance * Math.sin(reactionAge * 7 + i) * 0.07 + giggle * Math.sin(reactionAge * 20 + i * 2) * 0.12;
       const waving = side === 1 ? wave : 0;
       const stretch = yawn * 0.9;
       arms[i].rotation.z = side * (0.12 + happy * 0.32 + dance * (0.34 + Math.sin(reactionAge * 8 + i * Math.PI) * 0.22) + stretch)
         + side * waving * (2.0 + Math.sin(reactionAge * 12) * 0.35);
       arms[i].rotation.x = -eat * 0.94 - pet * 0.10 - bath * 0.25 - sleepBlend * 0.17 - stretch * 0.3;
-      feet[i].rotation.x = dance * Math.sin(reactionAge * 8 + i * Math.PI) * 0.09;
+      feet[i].rotation.x = dance * Math.sin(reactionAge * 8 + i * Math.PI) * 0.09
+        + hop * Math.sin(Math.PI * progress) * 0.10;
+      // A pupila se move dentro do olho, em vez de deslocar o olho inteiro.
+      pupils[i].position.x = lookYaw * 0.043 * awake;
+      pupils[i].position.y = -lookPitch * 0.040 * awake;
+      eyebrows[i].position.y = happy * 0.025 - no * 0.035
+        + yawn * 0.012;
     }
 
     if (clock >= nextBlink && blinkAge < 0 && !sleeping) blinkAge = 0;
@@ -441,12 +504,16 @@ export function createBunny(THREE) {
     for (let i = 0; i < 2; i++) {
       eyes[i].visible = !closed;
       eyes[i].scale.y = eyeHeight;
-      eyes[i].position.x = (i === 0 ? -1 : 1) * 0.282 + lookYaw * 0.05 * awake;
-      eyes[i].position.y = 0.13 - lookPitch * 0.04 * awake;
+      eyes[i].position.x = (i === 0 ? -1 : 1) * 0.282;
+      eyes[i].position.y = 0.13;
       closedEyes[i].visible = closed;
     }
   }
 
   update(0, 0);
-  return { root, head, update, react, setSleeping, setDirty, setAccessory, setOutfit, setLook, setMouth };
+  return {
+    root, head, update, react, setSleeping, setDirty,
+    setAccessory, setOutfit, setLook, setMouth,
+    getElevation: () => Math.max(0, rig.position.y),
+  };
 }

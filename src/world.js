@@ -89,6 +89,7 @@ export class GardenWorld {
     this.butterflies = [];
     this.flowers = [];
     this.treeTops = [];
+    this.pinwheels = [];
     this.clouds = [];
     this.fireflies = [];
     this.foam = [];
@@ -118,7 +119,7 @@ export class GardenWorld {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.22;
+    this.renderer.toneMappingExposure = 1.06;
     this.quality = 2;
     this.frameSamples = [];
     this.applyQuality();
@@ -127,15 +128,18 @@ export class GardenWorld {
     this.pose = { pos: POSES.home.pos.clone(), look: POSES.home.look.clone() };
     this.frustum = null;
 
-    this.ambient = new THREE.HemisphereLight('#fffaf1', '#7fae72', 2.5);
+    // A versão anterior lavava as cores: luz de preenchimento mais suave,
+    // sol quente e contraste suficiente para ler o rosto do Pipo.
+    this.ambient = new THREE.HemisphereLight('#fff6e9', '#78a56f', 1.45);
     this.scene.add(this.ambient);
-    this.sun = new THREE.DirectionalLight('#ffe9c8', 3.4);
+    this.sun = new THREE.DirectionalLight('#fff0d4', 2.35);
     this.sun.position.set(-5, 11, 8);
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(1024, 1024);
     Object.assign(this.sun.shadow.camera, { left: -8, right: 8, top: 8, bottom: -8, near: 1, far: 30 });
-    this.sun.shadow.normalBias = 0.05;
-    this.sun.shadow.bias = -0.0003;
+    this.sun.shadow.normalBias = 0.023;
+    this.sun.shadow.bias = -0.00025;
+    this.sun.shadow.radius = 2;
     this.scene.add(this.sun);
 
     this.environment = new THREE.Group();
@@ -170,8 +174,10 @@ export class GardenWorld {
     const m = new THREE.Mesh(this.geometries[type], this.mat(color));
     m.position.set(x, y, z);
     m.scale.set(sx, sy, sz);
-    m.castShadow = true;
-    m.receiveShadow = true;
+    // Miniobjetos quase não produzem sombras legíveis na tela pequena.
+    // Evita renderizá-los novamente no shadow pass do celular.
+    m.castShadow = Math.max(sx, sy, sz) >= 0.38;
+    m.receiveShadow = Math.max(sx, sy, sz) >= 0.32;
     parent.add(m);
     return m;
   }
@@ -179,11 +185,19 @@ export class GardenWorld {
     root.traverse(m => { if (m.isMesh) { m.userData.action = action; this.targets.push(m); } });
   }
   // Junta decorações repetidas em InstancedMesh: menos chamadas de desenho no celular.
+  // Grupos selecionados ficam fora do lote para o vento animá-los de verdade:
+  // antes as malhas eram removidas desses grupos, anulando a animação.
   batchDecorations() {
     this.scene.updateMatrixWorld(true);
     const batches = new Map();
+    const animated = new Set([...this.treeTops, ...this.flowers.slice(0, 4), ...this.pinwheels]);
     this.environment.traverse(m => {
       if (!m.isMesh || m.userData.action || Array.isArray(m.material)) return;
+      let parent = m.parent;
+      while (parent && parent !== this.environment) {
+        if (animated.has(parent)) return;
+        parent = parent.parent;
+      }
       const key = m.geometry.uuid + ':' + m.material.uuid;
       if (!batches.has(key)) batches.set(key, []);
       batches.get(key).push(m);
@@ -208,12 +222,23 @@ export class GardenWorld {
     s.lineTo(w / 2, d / 2 - r); s.quadraticCurveTo(w / 2, d / 2, w / 2 - r, d / 2); s.lineTo(-w / 2 + r, d / 2);
     s.quadraticCurveTo(-w / 2, d / 2, -w / 2, d / 2 - r); s.lineTo(-w / 2, -d / 2 + r); s.quadraticCurveTo(-w / 2, -d / 2, -w / 2 + r, -d / 2);
     const geo = new THREE.ExtrudeGeometry(s, { depth: 0.45, bevelEnabled: true, bevelSegments: 3, steps: 1, bevelSize: 0.12, bevelThickness: 0.12, curveSegments: 10 });
-    const grass = new THREE.Mesh(geo, this.mat('#a3d184'));
+    const grass = new THREE.Mesh(geo, this.mat('#94c779'));
     grass.rotation.x = -Math.PI / 2;
     grass.position.y = -0.34;
     grass.receiveShadow = true;
     this.environment.add(grass);
     this.mesh('box', '#d9b98c', 0, -0.62, 0, 9.2, 0.5, 10.6); // terra por baixo da grama
+
+    // Manchas de grama baixas e tonais: profundidade visual sem texturas,
+    // partículas ou mais trabalho por frame. O batching une as geometrias.
+    for (let i = 0; i < 34; i++) {
+      const x = -4.0 + ((i * 17 + 7) % 37) / 37 * 8;
+      const z = -4.7 + ((i * 23 + 3) % 41) / 41 * 9.4;
+      if (Math.abs(x) < 1 && Math.abs(z) < 4.2) continue;
+      const patch = this.mesh('sphere', i % 3 ? '#9dd080' : '#85be72',
+        x, 0.116, z, 0.22 + (i % 4) * 0.07, 0.009, 0.18 + (i % 3) * 0.07);
+      patch.castShadow = false;
+    }
 
     // Uma trilha de pedrinhas entre as estações.
     for (let i = 0; i < 11; i++) {
@@ -222,6 +247,13 @@ export class GardenWorld {
       const stone = this.mesh('sphere', i % 2 ? '#f1e4c4' : '#ead9b4', x, 0.03, z, 0.45, 0.065, 0.27);
       stone.rotation.y = i * 0.8;
       stone.castShadow = false;
+      // Pedrinhas menores dão acabamento à trilha sem repetir o mesmo bloco.
+      for (const side of [-1, 1]) {
+        const chip = this.mesh('sphere', i % 2 ? '#f7e9cf' : '#ddccb1',
+          x + side * (0.5 + i % 3 * 0.08), 0.11, z + side * 0.11,
+          0.105 + i % 3 * 0.02, 0.045, 0.085);
+        chip.castShadow = false;
+      }
     }
     for (let i = 0; i < 15; i++) this.fencePost(-4.35 + i * 0.62, -5.1);
     for (const side of [-1, 1]) {
@@ -234,6 +266,9 @@ export class GardenWorld {
 
     this.makeTree(-3.65, -4.3, 1);
     this.makeTree(4, -1.75, 0.82);
+    this.makeGardenDetails();
+    this.makePinwheel(3.58, 4.45);
+    this.makeWateringCan(-2.90, 4.65);
     this.makeHouse(2.28, -3.48);
     this.makeCarrotBed(-2.45, -0.94);
     this.makeLetters(-2.62, 2.01);
@@ -313,15 +348,95 @@ export class GardenWorld {
     g.position.set(x, 0, z);
     g.scale.setScalar(scale);
     this.environment.add(g);
-    this.mesh('cylinder', '#c9a47a', 0, 1.25, 0, 0.17, 2.5, 0.17, g);
-    for (let i = 0; i < 6; i++) {
-      const tx = Math.sin(i * 2.4) * 0.66, ty = 2.6 + (i % 3) * 0.29, tz = Math.cos(i * 2.4) * 0.45;
-      this.mesh('sphere', ['#a5cf7f', '#bfdc93', '#8cc278'][i % 3], tx, ty, tz, 0.72, 0.85, 0.69, g);
+    // Tronco afunilado e copa assimétrica: árvore de brinquedo, não pilha
+    // de esferas idênticas. Poucas peças extras e nenhuma textura remota.
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.26, 2.55, 12), this.mat('#bb906d'));
+    trunk.position.y = 1.27;
+    trunk.castShadow = true;
+    trunk.receiveShadow = true;
+    g.add(trunk);
+    for (const side of [-1, 1]) {
+      const branch = this.mesh('cylinder', '#bb906d', side * 0.28, 1.95, 0,
+        0.075, 0.8, 0.075, g);
+      branch.rotation.z = side * 0.62;
     }
-    // Maçãzinhas na árvore.
-    for (let i = 0; i < 4; i++) this.mesh('sphere', '#f07b7b', Math.sin(i * 1.9) * 0.62, 2.45 + (i % 2) * 0.5, 0.55 + Math.cos(i) * 0.1, 0.1, 0.1, 0.1, g);
+    for (let i = 0; i < 8; i++) {
+      const angle = i * Math.PI * 2 / 8;
+      const radius = 0.50 + (i % 3) * 0.11;
+      const tx = Math.cos(angle) * radius, tz = Math.sin(angle) * 0.48;
+      this.mesh('sphere', ['#81b96f', '#a7d18b', '#94c67c', '#b4d996'][i % 4],
+        tx, 2.64 + (i % 3) * 0.17, tz, 0.62 + (i % 2) * 0.12, 0.73, 0.64, g);
+    }
+    this.mesh('sphere', '#acd58c', 0, 3.15, 0, 0.70, 0.69, 0.66, g);
+    for (let i = 0; i < 4; i++) {
+      const px = Math.sin(i * 1.9) * 0.72, pz = 0.54 + Math.cos(i) * 0.1;
+      this.mesh('sphere', '#e97079', px, 2.43 + (i % 2) * 0.43, pz, 0.12, 0.12, 0.11, g);
+      this.mesh('sphere', '#76b26d', px + 0.075, 2.58 + (i % 2) * 0.43, pz,
+        0.085, 0.028, 0.047, g);
+    }
     this.treeTops.push(g);
   }
+
+  makeGardenDetails() {
+    // Cogumelos e pedrinhas nas bordas: os objetos decorativos não competem
+    // com os botões de atividade nem geram novos alvos de toque.
+    for (const [x, z, color] of [
+      [-3.78, -2.75, '#efa8a0'], [-3.48, -2.98, '#f5d28e'],
+      [3.95, 2.6, '#f0b5a9'], [3.60, 2.83, '#f8d18b'],
+    ]) {
+      this.mesh('cylinder', '#fff3d9', x, 0.23, z, 0.066, 0.26, 0.066);
+      this.mesh('sphere', color, x, 0.37, z, 0.21, 0.135, 0.20);
+      this.mesh('sphere', '#fff7ea', x - 0.05, 0.46, z + 0.12, 0.035, 0.018, 0.023);
+    }
+    for (let i = 0; i < 12; i++) {
+      const side = i % 2 ? 1 : -1;
+      const x = side * (3.5 + (i % 4) * 0.22);
+      const z = -3.65 + i * 0.69;
+      const pebble = this.mesh('sphere', i % 3 ? '#e6d8b8' : '#e9cbb1',
+        x, 0.12, z, 0.12 + i % 3 * 0.035, 0.068, 0.11);
+      pebble.castShadow = false;
+    }
+  }
+  // Pequenos brinquedos 3D tornam o cenário habitado, sem abrir novos menus.
+  // Apenas a hélice gira; a haste e os detalhes estáticos continuam agrupáveis.
+  makePinwheel(x, z) {
+    const g = new THREE.Group();
+    g.position.set(x, 0, z);
+    this.environment.add(g);
+    this.mesh('cylinder', '#e6c5a0', 0, 0.72, 0, 0.052, 1.38, 0.052, g);
+    const rotor = new THREE.Group();
+    rotor.position.set(0, 1.48, 0.12);
+    g.add(rotor);
+    const petals = ['#f39ca7', '#f2c466', '#91c9a8', '#91bbe9', '#c5a6dd'];
+    for (let i = 0; i < petals.length; i++) {
+      const a = i * Math.PI * 2 / petals.length;
+      const blade = this.mesh('sphere', petals[i],
+        Math.sin(a) * 0.21, Math.cos(a) * 0.21, 0,
+        0.14, 0.275, 0.045, rotor);
+      blade.rotation.z = -a;
+      blade.castShadow = false;
+    }
+    this.mesh('sphere', '#fff0bb', 0, 0, 0.055, 0.12, 0.12, 0.07, rotor).castShadow = false;
+    this.pinwheels.push(rotor);
+  }
+
+  makeWateringCan(x, z) {
+    const g = new THREE.Group();
+    g.position.set(x, 0, z);
+    g.rotation.y = -0.23;
+    this.environment.add(g);
+    this.mesh('cylinder', '#83bed0', 0, 0.34, 0, 0.27, 0.50, 0.27, g);
+    const spout = this.mesh('cylinder', '#83bed0', 0.36, 0.45, 0, 0.085, 0.56, 0.085, g);
+    spout.rotation.z = -Math.PI / 3;
+    this.mesh('sphere', '#d8eef1', 0.59, 0.59, 0, 0.14, 0.07, 0.12, g);
+    const handle = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.052, 8, 24),
+      this.mat('#69a8bc'));
+    handle.position.set(-0.27, 0.40, 0);
+    handle.castShadow = false;
+    g.add(handle);
+    this.mesh('sphere', '#d5e6dd', 0, 0.61, 0, 0.29, 0.052, 0.29, g);
+  }
+
   makeHouse(x, z) {
     const g = new THREE.Group();
     g.position.set(x, 0, z);
@@ -334,7 +449,15 @@ export class GardenWorld {
     roof.position.set(0, 1.95, -1);
     roof.castShadow = true;
     g.add(roof);
+    // Beirais claros na fachada deixam o telhado legível na câmera isométrica.
+    for (const side of [-1, 1]) {
+      const trim = this.mesh('box', '#ffd2b6', side * 0.64, 2.465, 1.048,
+        1.66, 0.085, 0.09, g);
+      trim.rotation.z = side * -0.676;
+    }
     this.mesh('box', '#f0aaa0', 0, 2.95, 0, 0.12, 0.12, 2.14, g);
+    this.mesh('box', '#d59a88', 0.66, 2.76, -0.57, 0.33, 0.69, 0.33, g);
+    this.mesh('box', '#f7c2a9', 0.66, 3.11, -0.57, 0.42, 0.13, 0.42, g);
     const doorShape = new THREE.Shape();
     doorShape.moveTo(-0.54, 0); doorShape.lineTo(0.54, 0); doorShape.lineTo(0.54, 0.99); doorShape.absarc(0, 0.99, 0.54, 0, Math.PI, false); doorShape.lineTo(-0.54, 0);
     const door = new THREE.Mesh(new THREE.ShapeGeometry(doorShape), this.mat('#b38a68'));
@@ -346,8 +469,14 @@ export class GardenWorld {
     this.mesh('sphere', '#f0bac5', -0.48, 1.5, 0.935, 0.075, 0.075, 0.02, g);
     // Janelinha que acende de noite.
     this.windowLight = new THREE.Mesh(new THREE.CircleGeometry(0.22, 20), new THREE.MeshBasicMaterial({ color: '#cfe3ee' }));
-    this.windowLight.position.set(0.62, 1.35, 0.875);
+    this.windowLight.position.set(0.62, 1.35, 0.878);
     g.add(this.windowLight);
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.04, 8, 28), this.mat('#fff7df'));
+    rim.position.set(0.62, 1.35, 0.92);
+    g.add(rim);
+    this.mesh('box', '#fff7df', 0.62, 1.35, 0.933, 0.035, 0.45, 0.025, g);
+    this.mesh('box', '#fff7df', 0.62, 1.35, 0.934, 0.45, 0.035, 0.025, g);
+    this.mesh('sphere', '#f2e1c1', 0, 0.08, 1.12, 0.68, 0.08, 0.29, g);
     this.register(g, 'sleep');
   }
   carrot(parent, x = 0, y = 0, z = 0, scale = 1) {
@@ -529,10 +658,33 @@ export class GardenWorld {
     grad.addColorStop(1, 'rgba(60,74,41,0)');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, 128, 128);
-    this.shadow = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 2), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false }));
+    const texture = new THREE.CanvasTexture(c);
+    const plane = new THREE.PlaneGeometry(2.5, 2);
+    // A superfície da grama termina em y=0.11. Antes, o círculo de contato
+    // ficava em y=0.017 e era escondido por ela.
+    this.shadow = new THREE.Mesh(plane,
+      new THREE.MeshBasicMaterial({ map: texture, transparent: true,
+        opacity: 0.88, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1 }));
     this.shadow.rotation.x = -Math.PI / 2;
-    this.shadow.position.set(0, 0.017, 0.45);
+    this.shadow.position.set(0, 0.128, 0.45);
+    this.shadow.renderOrder = 1;
     this.scene.add(this.shadow);
+    // Sombras estáticas econômicas dão peso à casinha e às árvores.
+    for (const [x, z, sx, sz, opacity] of [
+      [-3.65, -4.3, 1.35, 1.18, 0.50],
+      [4.00, -1.75, 1.17, 0.95, 0.40],
+      [2.28, -3.48, 1.45, 1.28, 0.40],
+    ]) {
+      const mesh = new THREE.Mesh(plane, new THREE.MeshBasicMaterial({
+        map: texture, transparent: true, opacity, depthWrite: false,
+        polygonOffset: true, polygonOffsetFactor: -1,
+      }));
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.position.set(x, 0.125, z);
+      mesh.scale.set(sx, sz, 1);
+      mesh.renderOrder = 0;
+      this.scene.add(mesh);
+    }
   }
 
   // ---------- Estado, câmera e qualidade ----------
@@ -549,9 +701,10 @@ export class GardenWorld {
     this.starGroup.visible = this.night;
     for (const f of this.fireflies) f.visible = this.night;
     for (const c of this.clouds) c.visible = !this.night;
-    this.sun.intensity = this.night ? 0.5 : 3.4;
-    this.ambient.intensity = this.night ? 1.4 : 2.5;
-    this.ambient.color.set(this.night ? '#c9d2f0' : '#fffaf1');
+    this.sun.intensity = this.night ? 0.48 : 2.35;
+    this.ambient.intensity = this.night ? 0.95 : 1.45;
+    this.ambient.color.set(this.night ? '#b9c5e8' : '#fff6e9');
+    this.renderer.toneMappingExposure = this.night ? 0.96 : 1.06;
     this.windowLight.material.color.set(this.night ? '#ffd77a' : '#cfe3ee');
   }
   applyQuality() {
@@ -559,7 +712,15 @@ export class GardenWorld {
     const caps = [1, 1.5, 2];
     this.renderer.setPixelRatio(Math.min(dpr, caps[this.quality]));
     this.renderer.shadowMap.enabled = this.quality > 0;
-    if (this.sun) this.sun.castShadow = this.quality > 0;
+    if (this.sun) {
+      this.sun.castShadow = this.quality > 0;
+      const shadowResolution = this.quality === 2 ? 1024 : 512;
+      if (this.sun.shadow.mapSize.x !== shadowResolution) {
+        this.sun.shadow.map?.dispose();
+        this.sun.shadow.map = null;
+        this.sun.shadow.mapSize.set(shadowResolution, shadowResolution);
+      }
+    }
     if (this.width > 1) this.renderer.setSize(this.width, this.height, false);
   }
   // Se o aparelho não acompanha, baixa a resolução e depois as sombras.
@@ -862,6 +1023,11 @@ export class GardenWorld {
     this.pet.root.position.lerp(this.petTarget, 0.05);
     this.shadow.position.x = this.pet.root.position.x;
     this.shadow.position.z = this.pet.root.position.z;
+    // A sombra encolhe e perde força quando ele pula, reforçando a altura.
+    const elevation = this.pet.getElevation();
+    const airborne = Math.min(1, elevation / 0.45);
+    this.shadow.scale.set(1 - airborne * 0.24, 1 - airborne * 0.24, 1);
+    this.shadow.material.opacity = 0.88 - airborne * 0.42;
     this.pet.root.rotation.y = 0.18 + Math.sin(this.time * 0.22) * 0.07;
 
     for (const b of this.butterflies) {
@@ -871,6 +1037,7 @@ export class GardenWorld {
     }
     for (const f of this.flowers) f.rotation.z = Math.sin(this.time * 1.3 + f.position.x) * 0.025;
     for (const t of this.treeTops) t.rotation.z = Math.sin(this.time * 0.5 + t.position.x) * 0.015;
+    for (const rotor of this.pinwheels) rotor.rotation.z = Math.sin(this.time * 0.42) * 0.18 + this.time * 0.38;
     for (const c of this.clouds) {
       c.position.x += c.userData.speed * dt;
       if (c.position.x > 11) c.position.x = -11;
