@@ -88,3 +88,48 @@ test('toque convertido em espaço local acompanha a posição e rotação do Pip
   assert.equal(world.petTouchZone(part(0.15)), 'feet');
   assert.equal(world.petTouchZone(null), 'head');
 });
+
+test('gesto longo acaricia uma vez; tap normal e banho não são interceptados', () => {
+  const events = new Map();
+  const world = Object.create(GardenWorld.prototype);
+  world.canvas = { addEventListener: (name, fn) => events.set(name, fn) };
+  world.pet = createBunny(THREE);
+  world.mode = 'home';
+  world.time = 9;
+  world.lookAtClient = () => {};
+  world.isPetAt = () => true;
+  let hitAction = 'pet';
+  world.pick = () => ({ object: { userData: { action: hitAction } }, point: new THREE.Vector3(0, 2.1, 0) });
+  world.hit = () => ({ object: { userData: { action: 'pet' } }, point: new THREE.Vector3(0, 2.1, 0) });
+  let strokes = 0, taps = 0, rubs = 0;
+  world.onStroke = () => { strokes++; };
+  world.onInteract = () => { taps++; };
+  world.onRub = () => { rubs++; };
+  world.bindPointers();
+  const fire = (kind, x, y = 100) => events.get(kind)({ clientX: x, clientY: y, pointerId: 1, pointerType: 'touch' });
+
+  fire('pointerdown', 100);
+  fire('pointermove', 145);
+  fire('pointermove', 190);
+  fire('pointerup', 195);
+  assert.equal(strokes, 1);
+  assert.equal(taps, 0);
+  fire('pointerdown', 100);
+  fire('pointerup', 105);
+  assert.equal(strokes, 1);
+  assert.equal(taps, 1);
+
+  hitAction = 'letters';
+  fire('pointerdown', 100);
+  fire('pointermove', 200);
+  fire('pointerup', 210);
+  assert.equal(strokes, 1, 'não transforma gesto iniciado numa estação em carinho');
+
+  hitAction = 'pet';
+  world.mode = 'bath';
+  fire('pointerdown', 100);
+  fire('pointermove', 175);
+  fire('pointerup', 180);
+  assert.equal(strokes, 1, 'o banho continua com o comportamento anterior');
+  assert.ok(rubs >= 1, 'esfregar continua produzindo espuma');
+});
