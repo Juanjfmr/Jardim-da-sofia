@@ -85,6 +85,22 @@ try {
     return response.result?.value;
   };
   const click = selector => evalJs(`(() => { const el = document.querySelector(${JSON.stringify(selector)}); if (!el) throw new Error('Botão ausente: ${selector}'); el.click(); return true; })()`);
+  // Toques reais despachados pelo protocolo do Chrome, sem chamar handlers do jogo.
+  const canvasPoint = (x, y) => evalJs(`(() => {
+    const r=document.querySelector('.trail-canvas').getBoundingClientRect();
+    return {x:r.left+r.width*${x}/700,y:r.top+r.height*${y}/580};
+  })()`);
+  const trailTap = async (x, y) => {
+    const p=await canvasPoint(x,y);
+    await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[p]});
+    await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  };
+  const trailDrag = async (x1,y1,x2,y2) => {
+    const a=await canvasPoint(x1,y1),b=await canvasPoint(x2,y2);
+    await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[a]});
+    for(let i=1;i<=5;i++)await send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:a.x+(b.x-a.x)*i/5,y:a.y+(b.y-a.y)*i/5}]});
+    await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  };
   const waitFor = async (expr, label) => {
     for (let i = 0; i < 65; i++) { if (await evalJs(expr).catch(() => false)) return; await delay(180); }
     throw new Error('Timeout: ' + label);
@@ -117,7 +133,7 @@ try {
   await snap('smoke-portrait.png');
 
   await click('.dock-btn.games');
-  assert.equal(await evalJs("document.querySelectorAll('.game-card').length"), 8);
+  assert.equal(await evalJs("document.querySelectorAll('.game-card').length"), 9);
   await click('.game-card[data-activity="art"]');
   assert.equal(await evalJs("window.jardimSofia.getActivity()"), 'art');
   assert.equal(await evalJs("document.querySelectorAll('.art-stamp').length"), 8);
@@ -141,6 +157,37 @@ try {
   await click('.explore-item[data-object="butterfly"]');
   await click('.explore-item[data-object="ladybug"]');
   assert.equal(await evalJs("window.jardimSofia.getState().completed.explore"), 1);
+  await click('#activity-close');
+
+  // Missão: personagem movido por alvo, 3 pistas, arrasto físico de ponte,
+  // galho removível, Pipo seguindo o cachorro, itens de festa por arrasto.
+  await click('.dock-btn.games');
+  await click('.game-card[data-activity="trail"]');
+  assert.equal(await evalJs("window.jardimSofia.getActivity()"),'trail');
+  assert.equal(await evalJs("window.jardimSofia.getState().trail.scene"),'forest');
+  await snap('smoke-trail-forest.png');
+  for(let i=1;i<=3;i++){
+    await click('.trail-hint');
+    await waitFor("window.jardimSofia.getState().trail.clues.length >= "+i,'pista '+i);
+  }
+  assert.equal(await evalJs("window.jardimSofia.getState().trail.scene"),'river');
+  await trailDrag(88,470,300,302);
+  await trailDrag(146,474,354,289);
+  await trailDrag(204,470,412,302);
+  assert.equal(await evalJs("window.jardimSofia.getState().trail.scene"),'meadow');
+  await trailTap(350,368);
+  assert.equal(await evalJs("window.jardimSofia.getState().trail.obstacle"),true);
+  await trailTap(548,332);
+  await waitFor("window.jardimSofia.getState().trail.friend",'Pipo encontrado');
+  await trailTap(617,470);
+  await waitFor("window.jardimSofia.getState().trail.scene === 'party'",'resgate e escolta');
+  await snap('smoke-trail-party.png');
+  await trailDrag(160,516,235,330);
+  await trailDrag(350,516,350,265);
+  await trailDrag(540,516,465,330);
+  assert.equal(await evalJs("window.jardimSofia.getState().trail.decorations.length"),3);
+  await click('.trail-next');
+  assert.equal(await evalJs("window.jardimSofia.getState().completed.trail"),1);
   await click('#activity-close');
 
   await send('Emulation.setDeviceMetricsOverride', { width: 844, height: 390, deviceScaleFactor: 1, mobile: true, screenWidth: 844, screenHeight: 390 });

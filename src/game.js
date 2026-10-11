@@ -658,6 +658,7 @@ function openActivity(type) {
 }
 
 function closeActivity(returnHome = true) {
+  current?.cleanup?.();
   clearTimers();
   coach.clear();
   const wasOpen = !$('activity-modal').hidden;
