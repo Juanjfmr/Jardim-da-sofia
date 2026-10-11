@@ -102,11 +102,38 @@ export function setupVisitorUI({ getWorld, getMode, say }) {
     }
     visibility();
   }
+  async function installBundledModels() {
+    // Apenas arquivos LOCAIS, empacotados no próprio APK. Nada é baixado de
+    // plataformas externas, e uma importação do adulto nunca é substituída.
+    if (!globalThis.indexedDB || typeof globalThis.fetch !== 'function') return;
+    let response;
+    try { response = await fetch('./family-models/manifest.json'); }
+    catch { return; }
+    if (!response.ok) return; // APK normal: nenhum pacote incorporado.
+    const manifest = await response.json();
+    if (manifest.version !== 1 || !Array.isArray(manifest.ids)) return;
+    let installedNow = 0;
+    for (const id of VISITORS.map(v => v.id)) {
+      if (!manifest.ids.includes(id) || installed.has(id)) continue;
+      try {
+        const file = await fetch('./family-models/' + id + '.glb');
+        if (!file.ok) throw new Error('Modelo não encontrado no pacote.');
+        const bytes = await file.blob();
+        await saveVisitorGlb(id, bytes);
+        installed.add(id);
+        installedNow++;
+      } catch (error) {
+        sayStatus('Não foi possível instalar ' + id + ': ' + (error?.message || 'Erro de leitura.'));
+      }
+    }
+    if (installedNow) sayStatus('Os visitantes do pacote familiar estão prontos para brincar.');
+  }
   async function refresh() {
     try {
       const have = await installedVisitors();
       installed.clear();
       have.forEach(v => installed.add(v.id));
+      await installBundledModels();
       render();
     } catch (error) {
       render();
