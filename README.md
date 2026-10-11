@@ -19,7 +19,7 @@ Jogo de bichinho virtual para crianças de **3 a 5 anos**, feito em Three.js 0.1
 
 ## Brincadeiras
 
-- **Carinho:** o Pipo segue o dedo com o olhar e “amassa” no toque. Vários toques seguidos fazem risadinha e, depois, um giro.
+- **Carinho com respostas diferentes:** o Pipo acompanha o dedo, inclina a cabeça quando recebe carinho no rosto, mexe as orelhas quando são tocadas, dá pulinhos ao tocar nas patas e ri com cócegas na barriga. Arrastar o dedo sobre ele faz um carinho comprido; três toques fazem risadinha e seis fazem um giro. O banho mantém seu próprio gesto de esfregar.
 - **Guarda-roupa:** vista uma jardineira, camiseta, pijama ou avental; escolha entre quatro cores e veja o Pipo inteiro no espelho. Toque na roupa ou arraste até ele. Todas as roupinhas estão disponíveis desde o começo; enfeites continuam sendo presentes das brincadeiras. Roupa e cor ficam salvas e aparecem no Pipo em 3D no jardim.
 - **Cozinha:** escolha pizza, bolo de banana ou legumes assados, misture até cinco ingredientes livremente, leve o prato ao forno de faz de conta e sirva ao Pipo. Ingredientes e prato funcionam por toque ou arrasto. O forno leva quatro segundos, mostra o progresso e transforma a comida crua em assada. Pipo come e comemora; cada prato servido dá uma flor, mesmo se ele já estiver cheio. Tirar o último ingrediente, limpar e escolher outra receita permitem inventar de novo.
 - **Fruta pronta:** na cozinha, o botão da maçã abre o lanche rápido. Arraste a fruta até a boca do Pipo (ele abre a boca quando ela chega perto) ou só toque nela. Quando está cheio, ele recusa com carinho.
@@ -32,6 +32,7 @@ Jogo de bichinho virtual para crianças de **3 a 5 anos**, feito em Three.js 0.1
 - **Formas:** monte a caixa de encaixes do Pipo com 3, 4 ou 5 peças, conforme o desafio. Na primeira visita, ele demonstra como encaixar; o botão “Ver o Pipo” repete a ajuda e “Minha vez” permite começar imediatamente. Dá para tocar ou arrastar até a sombra destacada. Cada peça permanece no lugar e o brinquedo pronto continua visível na comemoração.
 - **Música:** xilofone livre ou “Imitar o Pipo”, com melodias de 2, 3 ou 4 notas.
 - **Plantar:** quatro canteiros que guardam o progresso: semente, broto, crescimento e flor.
+- **Um Pipo mais vivo:** focinho que se mexe, orelhas expressivas, sobrancelhas, bochechas que reagem, alongamentos, farejadas e olhares curiosos. O comportamento acompanha seus cuidados sem gerar punições: quando está com sono, ele boceja; com fome, fareja; querendo brincar, pula. Esses momentos só ocorrem na tela do jardim, sem interromper atividades ou a hora de dormir.
 - **Aventuras do Pipo:** no menu Brincar, escolha entre três histórias (O piquenique do Pipo, Uma festa no jardim e O segredo das flores). Cada uma liga três brincadeiras em uma pequena aventura. É possível sair, voltar e continuar do mesmo capítulo, inclusive sem internet. Não há prazo, pontuação extra ou punição por parar.
 
 Prévia de Formas: [caixa de encaixes no celular](docs/previews/formas-celular.jpg) e [brinquedo pronto no celular deitado](docs/previews/formas-concluidas-paisagem.jpg).

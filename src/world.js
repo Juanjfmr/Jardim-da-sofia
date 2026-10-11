@@ -1,5 +1,6 @@
 import * as THREE from './vendor/three.module.js';
 import { createBunny } from './pet.js';
+import { moodFromNeeds, chooseIdleMoment, touchZone } from './pipo-behaviors.js';
 import { makeStoryTree, makeStoryCottage, decorateStoryGarden } from './art-direction.js';
 
 // Poses da câmera. A ortográfica dá o ar de "diorama" e o enquadramento é calculado
@@ -95,6 +96,7 @@ export class GardenWorld {
     this.foam = [];
     this.materials = new Map();
     this.onInteract = () => {};
+    this.onStroke = () => {};
     this.onRub = () => {};
     this.onBubble = () => {};
     this.onFrame = null;
@@ -105,7 +107,8 @@ export class GardenWorld {
     this.petTarget = PET_HOME.clone();
     this.paused = false;
     this.lastPointer = -10;
-    this.nextIdle = 6;
+    this.nextIdle = 10;
+    this.mood = 'calm';
     this.bubbleRespawn = [];
 
     this.geometries = {
@@ -499,6 +502,8 @@ export class GardenWorld {
 
   // ---------- Estado, câmera e qualidade ----------
   setState(s) {
+    this.mood = moodFromNeeds(s);
+    this.pet.setMood(this.mood);
     this.pet.setSleeping(s.sleeping);
     this.pet.setDirty((100 - s.clean) / 100);
     this.pet.setAccessory(s.accessory);
@@ -627,6 +632,13 @@ export class GardenWorld {
     const x = clientX - r.left, y = clientY - r.top;
     return x > b.left - pad && x < b.right + pad && y > b.top - pad && y < b.bottom + pad;
   }
+  // A área tocada muda a reação: orelhas, cabecinha, barriga ou patinhas.
+  petTouchZone(point) {
+    if (!point) return 'head';
+    this.pet.root.updateMatrixWorld(true);
+    const local = this.pet.root.worldToLocal(point.clone());
+    return touchZone(local.y);
+  }
   // O Pipo acompanha o dedo com o olhar.
   lookAtClient(clientX, clientY) {
     const r = this.canvas.getBoundingClientRect();
@@ -640,7 +652,11 @@ export class GardenWorld {
   }
   bindPointers() {
     this.canvas.addEventListener('pointerdown', e => {
-      this.pointerDown = { x: e.clientX, y: e.clientY, time: this.time };
+      const petStart = this.mode === 'home' && this.pick(e)?.object.userData.action === 'pet';
+      this.pointerDown = {
+        x: e.clientX, y: e.clientY, lastX: e.clientX, lastY: e.clientY,
+        travel: 0, petStart, time: this.time,
+      };
       this.lookAtClient(e.clientX, e.clientY);
       if (this.mode === 'bath') {
         this.canvas.setPointerCapture?.(e.pointerId);
@@ -650,6 +666,13 @@ export class GardenWorld {
     });
     this.canvas.addEventListener('pointermove', e => {
       if (e.pointerType === 'mouse' || this.pointerDown) this.lookAtClient(e.clientX, e.clientY);
+      if (this.pointerDown) {
+        this.pointerDown.travel += Math.hypot(
+          e.clientX - this.pointerDown.lastX, e.clientY - this.pointerDown.lastY,
+        );
+        this.pointerDown.lastX = e.clientX;
+        this.pointerDown.lastY = e.clientY;
+      }
       if (this.pointerDown && this.mode === 'bath') {
         const hit = this.hit(e);
         if (hit?.object.userData.action === 'pet') this.onRub(e, hit.point);
@@ -657,9 +680,22 @@ export class GardenWorld {
     });
     this.canvas.addEventListener('pointerup', e => {
       if (!this.pointerDown) return;
-      const moved = Math.hypot(e.clientX - this.pointerDown.x, e.clientY - this.pointerDown.y);
+      const gesture = this.pointerDown;
+      const moved = Math.hypot(e.clientX - gesture.x, e.clientY - gesture.y);
+      gesture.travel += Math.hypot(e.clientX - gesture.lastX, e.clientY - gesture.lastY);
       this.pointerDown = null;
-      if (moved > 16) return; // foi um arraste, não um toque
+      if (moved > 16) {
+        // Acariciar o Pipo arrastando o dedo agora tem uma resposta própria;
+        // gestos curtos ou iniciados nas estações não disparam por acidente.
+        if (this.mode === 'home' && gesture.petStart && gesture.travel >= 55
+          && this.isPetAt(e.clientX, e.clientY, 28)) {
+          const hit = this.hit(e);
+          const point = hit?.object.userData.action === 'pet' ? hit.point
+            : this.pet.head.getWorldPosition(new THREE.Vector3());
+          this.onStroke(point, e);
+        }
+        return;
+      } // foi um arraste, não um toque
       const hit = this.pick(e);
       if (!hit) return;
       const action = hit.object.userData.action;
@@ -799,12 +835,14 @@ export class GardenWorld {
   // ---------- Animação ----------
   idle() {
     if (this.time < this.nextIdle) return;
-    this.nextIdle = this.time + 5 + Math.random() * 6;
-    if (this.mode !== 'home' || this.night || this.time - this.lastPointer < 3) return;
-    const r = Math.random();
-    if (r < 0.45) this.pet.setLook((Math.random() - 0.5) * 0.9, (Math.random() - 0.3) * 0.4);
-    else if (r < 0.6) this.pet.react('happy');
-    else this.pet.setLook(0, 0);
+    this.nextIdle = this.time + 11 + Math.random() * 7;
+    const moment = chooseIdleMoment({
+      mode: this.mode, paused: this.paused, sleeping: this.night,
+      sinceTouch: this.time - this.lastPointer, mood: this.mood,
+    }, Math.random());
+    if (!moment) return;
+    if (moment === 'look') this.pet.setLook((Math.random() - 0.5) * 0.7, (Math.random() - 0.4) * 0.3);
+    else this.pet.react(moment);
   }
   loop(now) {
     if (!this.running) return;

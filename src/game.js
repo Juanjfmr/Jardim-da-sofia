@@ -4,6 +4,7 @@ import { icon, pipoFace } from './icons.js';
 import { $, makeButton, installDrag, particles, confetti, flyTo, holdToActivate, Coach } from './ui.js';
 import { createActivities, ACTIVITY_LIST } from './activities.js';
 import { ADVENTURES, adventureProgress, startAdventure, recordAdventureActivity } from './adventures.js';
+import { responseToTouch } from './pipo-behaviors.js';
 import { createKitchen } from './kitchen.js';
 import { createWardrobe } from './wardrobe.js';
 import {
@@ -30,6 +31,7 @@ let lastRub = 0, lastScrub = 0, bathProgress = 0, bathPhase = 'soap', popped = 0
 let lastNeed = null, lastNeedSpoken = 0;
 let lastInteraction = Date.now(), nudges = 0;
 let petTaps = [];
+let lastStrokeSpoken = 0;
 let resting = false;
 const roomControllers = new Map();
 
@@ -208,6 +210,7 @@ function setupWorld() {
       if (mode === 'bath') { rub(point); return; }
       petPipo(point, e);
     } else if (action === 'butterfly') {
+      world?.pet.react('curious');
       audio.pop();
       audio.sparkle();
       world.emit(point, '#f4d28e', 10);
@@ -217,6 +220,10 @@ function setupWorld() {
       else if (action === 'bath') onDock('bath');
       else openActivity(action);
     }
+  };
+  world.onStroke = (point, e) => {
+    if (!started || anyOverlayOpen() || mode !== 'home') return;
+    strokePipo(point, e);
   };
   world.onRub = (_, point) => rub(point);
   world.onBubble = () => onBubblePopped();
@@ -252,6 +259,25 @@ function setupWorld() {
   updateInsets();
 }
 
+function strokePipo(point, e) {
+  if (state.sleeping) return;
+  touch();
+  petTaps = [];
+  state = care(state, 'pet');
+  world?.pet.react('nuzzle');
+  if (point) world?.emit(point, '#f4a8bc', 5);
+  audio.xylo(2);
+  audio.haptic(12);
+  particles($('particle-layer'), '💛', 4, e ? { x: e.clientX, y: e.clientY } : null);
+  sync();
+  // Carinho contínuo não vira uma sequência de falas sobrepostas.
+  const now = Date.now();
+  if (now - lastStrokeSpoken > 10000) {
+    lastStrokeSpoken = now;
+    say('Ahhh, um carinho bem gostoso! Obrigado!');
+  }
+}
+
 function petPipo(point, e) {
   if (state.sleeping) {
     say('Shhh… o Pipo está sonhando.', true);
@@ -262,7 +288,8 @@ function petPipo(point, e) {
   petTaps = petTaps.filter(t => now - t < 1400).concat(now);
   state = care(state, 'pet');
   const n = petTaps.length;
-  const kind = n >= 6 ? 'spin' : n >= 3 ? 'giggle' : 'pet';
+  const zone = world?.petTouchZone(point) || 'head';
+  const kind = responseToTouch(zone, n);
   if (n >= 6) petTaps = [];
   world?.pet.react(kind);
   if (point) world?.emit(point, '#f3a6bd', 8);
@@ -270,7 +297,16 @@ function petPipo(point, e) {
   audio.haptic(8);
   particles($('particle-layer'), '💛', 3, e ? { x: e.clientX, y: e.clientY } : null);
   sync();
-  if (mode === 'home' && (n === 1 || kind !== 'pet')) say(kind === 'giggle' ? 'Hihihi, faz cócegas!' : kind === 'spin' ? 'Uhuuu! Olha eu girando!' : PET_LINES[Math.floor(Math.random() * PET_LINES.length)]);
+  if (mode === 'home' && (n === 1 || n === 3 || n === 6)) {
+    const lines = {
+      curious: 'Minhas orelhas ouviram você!',
+      nuzzle: 'Que carinho gostoso na cabecinha!',
+      giggle: 'Hihihi, faz cócegas!',
+      hop: 'Olha o meu pulinho!',
+      spin: 'Uhuuu! Olha eu girando!',
+    };
+    say(lines[kind] || PET_LINES[Math.floor(Math.random() * PET_LINES.length)]);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -471,7 +507,7 @@ function careReward(type) {
   if (unlocked) state = { ...state, accessory: unlocked };
   audio.fanfare();
   confetti($('confetti-layer'), 26);
-  world?.pet.react('happy');
+  world?.pet.react(type === 'bath' ? 'shake' : 'happy');
   bumpCounter();
   sync();
   if (unlocked) setTimeout(() => { if (!resting && !document.hidden && $('parent-modal').hidden) announceAccessory(unlocked); }, 1800);
