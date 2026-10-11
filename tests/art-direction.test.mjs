@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import * as THREE from 'three';
-import { GardenWorld } from '../src/world.js';
-import { makeStoryTree, makeStoryCottage, decorateStoryGarden } from '../src/art-direction.js';
-import { createBunny } from '../src/pet.js';
+import * as THREE from '../dist/vendor/three.module.js';
+import { GardenWorld } from '../dist/world.js';
+import { makeStoryTree, makeStoryCottage, decorateStoryGarden } from '../dist/art-direction.js';
+import { createBunny } from '../dist/pet.js';
 
 function fakeWorld() {
   const world = Object.create(GardenWorld.prototype);
