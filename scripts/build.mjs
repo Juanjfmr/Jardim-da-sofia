@@ -31,9 +31,14 @@ await copyDir(src, dist);
 await mkdir(path.join(dist, 'vendor'), { recursive: true });
 for (const file of ['three.module.js', 'three.core.js']) await copyFile(path.join(root, 'node_modules/three/build', file), path.join(dist, 'vendor', file));
 const loaderSource = await readFile(path.join(root, 'node_modules/three/examples/jsm/loaders/GLTFLoader.js'), 'utf8');
-const loaderLocal = loaderSource.replace(/from 'three';/g, "from './three.module.js';");
+const loaderLocal = loaderSource
+  .replace(/from 'three';/g, "from './three.module.js';")
+  .replace(/from '\.\.\/utils\/BufferGeometryUtils\.js';/g, "from './BufferGeometryUtils.js';");
 if (loaderLocal === loaderSource) throw new Error('O carregador GLTF mudou: revise o import Three.js.');
 await writeFile(path.join(dist, 'vendor/GLTFLoader.js'), loaderLocal);
+const utilsSource = await readFile(path.join(root, 'node_modules/three/examples/jsm/utils/BufferGeometryUtils.js'), 'utf8');
+await writeFile(path.join(dist, 'vendor/BufferGeometryUtils.js'),
+  utilsSource.replace(/from 'three';/g, "from './three.module.js';"));
 
 await copyFile(path.join(root, 'node_modules/three/LICENSE'), path.join(dist, 'vendor/THREE-LICENSE.txt'));
 const fontDir = path.join(root, 'node_modules/@fontsource-variable/fredoka');
