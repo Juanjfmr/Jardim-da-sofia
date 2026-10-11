@@ -1,0 +1,24 @@
+; Engine configuration file.
+; Jardim da Sofia — protótipo 3D separado do jogo web.
+config_version=5
+
+[application]
+config/name="Jardim da Sofia - Novo 3D"
+run/main_scene="res://scenes/Main.tscn"
+config/features=PackedStringArray("4.5", "GL Compatibility")
+config/description="Protótipo de um jardim 3D com modelo de coelho pré-pronto em CC0."
+
+[display]
+window/size/viewport_width=390
+window/size/viewport_height=844
+window/stretch/mode="canvas_items"
+window/handheld/orientation=1
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/default_filters/use_nearest_mipmap_filter=false
+environment/defaults/default_clear_color=Color(0.73, 0.87, 0.89, 1)
+
+[physics]
+3d/default_gravity=9.8
