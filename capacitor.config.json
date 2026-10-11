@@ -1,0 +1,11 @@
+{
+  "appId": "br.com.jardimdasofia.familia",
+  "appName": "Jardim da Sofia",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
