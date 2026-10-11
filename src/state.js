@@ -1,5 +1,7 @@
 // Estado puro do jogo: sem DOM, sem áudio. Tudo aqui é testado em tests/state.test.mjs.
 
+import { sanitizeAdventure, sanitizeFinishedAdventures } from './adventures.js';
+
 export const SAVE_KEY = 'jardim-sofia-v1';
 export const DEFAULT_NAME = 'Sofia';
 
@@ -83,6 +85,7 @@ export function initialState() {
     limit: 0, playDay: '', playSeconds: 0,
     rewards: 0, accessory: 'none', outfit: 'none', outfitColor: 'mint',
     completed: {},
+    adventure: null, finishedAdventures: [],
     plants: [0, 0, 0, 0],
     visits: 0,
   };
@@ -119,6 +122,8 @@ export function sanitizeState(input) {
   if (input.completed && typeof input.completed === 'object') {
     for (const k of COMPLETION_KEYS) if (Number.isInteger(input.completed[k])) s.completed[k] = clamp(input.completed[k], 0, 100000);
   }
+  s.adventure = sanitizeAdventure(input.adventure);
+  s.finishedAdventures = sanitizeFinishedAdventures(input.finishedAdventures);
   if (!unlockedAccessories(s).includes(s.accessory)) s.accessory = 'none';
   return s;
 }
