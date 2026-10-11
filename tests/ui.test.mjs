@@ -233,6 +233,59 @@ test('jornada completa: começar, cuidar, brincar, enfeitar, ajustar e salvar', 
     for (let i = 0; i < 3; i++) click('.fallback-pipo');
     assert.match($('prompt-text').textContent, /girando/);
     assert.equal(game.getMode(), 'home');
+
+    // Rodada 3: Ateliê — carimbo, pintura, desfazer, três cenários e salvamento.
+    click('.dock-btn.games');
+    assert.equal(document.querySelectorAll('.game-card').length, 8, 'o menu contém oito atividades reais');
+    click('.game-card[data-activity="art"]');
+    assert.equal(game.getActivity(), 'art');
+    assert.equal(document.querySelectorAll('.art-scene').length, 3);
+    assert.equal(document.querySelectorAll('.art-stamp').length, 8);
+    click('.art-stamp[data-stamp="🦋"]');
+    const svg = document.querySelector('.art-canvas');
+    const pointer = new window.Event('pointerdown', { bubbles: true, cancelable: true });
+    pointer.clientX = 150; pointer.clientY = 110; pointer.pointerId = 1;
+    svg.dispatchEvent(pointer);
+    assert.equal(game.getState().artworks.garden.stamps[0].symbol, '🦋');
+    assert.equal(document.querySelectorAll('.art-stamps text').length, 1);
+    click('.art-undo');
+    assert.equal(game.getState().artworks.garden.stamps.length, 0);
+    click('.art-color[data-color="#5da9dc"]');
+    const drawPointer = type => {
+      const e = new window.Event(type, { bubbles: true, cancelable: true });
+      e.clientX = 200; e.clientY = 160; e.pointerId = 3;
+      svg.dispatchEvent(e);
+    };
+    drawPointer('pointerdown');
+    drawPointer('pointerup');
+    assert.equal(game.getState().artworks.garden.lines.length, 1);
+    click('.art-scene[data-scene="night"]');
+    assert.equal(document.querySelectorAll('.art-lines polyline, .art-lines circle').length, 0);
+    click('.art-scene[data-scene="garden"]');
+    assert.equal(game.getState().artworks.garden.lines.length, 1, 'desenho permanece após mudar de cenário');
+    click('.art-save');
+    assert.equal(game.getState().completed.art, 1);
+    assert.equal(game.getState().artworks.garden.lines.length, 1);
+    click('#activity-close');
+
+    // Exploradores — resposta errada informa sem punir; três achados completam o jogo.
+    openGame('explore');
+    assert.equal(document.querySelectorAll('.explore-item').length, 5);
+    click('.explore-item[data-object="snail"]');
+    assert.match(document.querySelector('.explore-fact').textContent, /caracol/);
+    assert.equal(game.getState().completed.explore, undefined);
+    click('.explore-item[data-object="bee"]');
+    click('.explore-item[data-object="butterfly"]');
+    click('.explore-item[data-object="ladybug"]');
+    assert.equal(game.getState().completed.explore, 1);
+    assert.ok(document.querySelector('.celebration'), 'o resultado é mantido na tela');
+    assert.equal(JSON.parse(saved.get('jardim-sofia-v1')).completed.explore, 1);
+    click('#activity-close');
+    openGame('explore');
+    assert.match(document.querySelector('.explore-fact').textContent, /Toque/);
+    assert.equal(document.querySelector('.explore-landscape').classList.contains('explore-pond'), true,
+      'a próxima visita explora um lugar diferente');
+    click('#activity-close');
   } finally {
     intervals.forEach(clearInterval);
     globalThis.setInterval = originalInterval;
