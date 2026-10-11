@@ -4,6 +4,7 @@ import { icon } from './icons.js';
 import { installDrag, makeButton } from './ui.js';
 import { shapeFriendSVG } from './shape-friend.js';
 import { createCreativeActivities } from './creative-activities.js';
+import { createTrailMission } from './trail-mission.js';
 import {
   wordsFor, letterRound, pickLetter, countingRound, pickCarrot,
   colorRounds, shapesForLevel, SHAPE_NAMES, shuffle,
@@ -18,6 +19,7 @@ export const ACTIVITY_LIST = [
   { id: 'garden', name: 'Plantar', icon: 'garden', tag: 'SEMENTES E FLORES', title: 'Seu pequeno jardim', color: '#e6f3e2', emoji: '🌷' },
   { id: 'art', name: 'Ateliê', icon: 'art', tag: 'CRIE DO SEU JEITO', title: 'Ateliê do Pipo', color: '#fde7df', emoji: '🎨' },
   { id: 'explore', name: 'Explorar', icon: 'explore', tag: 'DESCUBRA A NATUREZA', title: 'Pequenos exploradores', color: '#e4f5e8', emoji: '🔎' },
+  { id: 'trail', name: 'Missão da Trilha', icon: 'explore', tag: 'UMA AVENTURA DE VERDADE', title: 'Resgate do Pipo', color: '#d8edcc', emoji: '🐾' },
 ];
 
 export const NUM = ['zero', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez', 'onze', 'doze'];
@@ -577,5 +579,5 @@ export function createActivities(ctx) {
     watch(() => body.querySelector('.plot-btn:not(.stage-3)') || body.querySelector('.plot-btn'));
   }
 
-  return { letters, count, colors, shapes, music, garden, ...createCreativeActivities(ctx) };
+  return { letters, count, colors, shapes, music, garden, ...createCreativeActivities(ctx), trail: createTrailMission(ctx) };
 }
