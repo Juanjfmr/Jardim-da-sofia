@@ -2,6 +2,7 @@ import * as THREE from './vendor/three.module.js';
 import { createBunny } from './pet.js';
 import { moodFromNeeds, chooseIdleMoment, touchZone } from './pipo-behaviors.js';
 import { makeStoryTree, makeStoryCottage, decorateStoryGarden } from './art-direction.js';
+import { createPetalField, updatePetalField, atmosphereStep } from './scene-polish.js';
 
 // Poses da câmera. A ortográfica dá o ar de "diorama" e o enquadramento é calculado
 // para caber exatamente no espaço livre entre o balão de fala e os botões.
@@ -94,6 +95,12 @@ export class GardenWorld {
     this.clouds = [];
     this.fireflies = [];
     this.foam = [];
+    this.reducedMotion = !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    this.nightBlend = state.sleeping ? 1 : 0;
+    this.daySkyColor = new THREE.Color('#fffaf1');
+    this.nightSkyColor = new THREE.Color('#c9d2f0');
+    this.dayWindowColor = new THREE.Color('#cfe3ee');
+    this.nightWindowColor = new THREE.Color('#ffd77a');
     this.materials = new Map();
     this.onInteract = () => {};
     this.onStroke = () => {};
@@ -148,6 +155,7 @@ export class GardenWorld {
     decorateStoryGarden(this, THREE);
     this.batchDecorations();
     this.buildSky();
+    this.petals = createPetalField(THREE, this.scene, 20);
     this.pet = createBunny(THREE);
     this.pet.root.position.copy(this.petTarget);
     this.pet.root.rotation.y = 0.18;
@@ -155,6 +163,7 @@ export class GardenWorld {
     this.register(this.pet.root, 'pet');
     this.addContactShadow();
     this.setState(state);
+    this.updateAtmosphere(0);
 
     this.raycaster = new THREE.Raycaster();
     this.pointer = new THREE.Vector2();
@@ -285,21 +294,23 @@ export class GardenWorld {
     }
     this.starGroup = new THREE.Group();
     this.starGroup.visible = false;
-    const starMat = new THREE.MeshBasicMaterial({ color: '#fff5c9' });
+    const starMat = new THREE.MeshBasicMaterial({ color: '#fff5c9', transparent: true, opacity: 0, depthWrite: false });
+    this.starMaterial = starMat;
     for (let i = 0; i < 26; i++) {
       const m = new THREE.Mesh(this.geometries.sphere, starMat);
       m.position.set(Math.sin(i * 5.4) * 7, 4 + (i % 6) * 0.55, -6 - Math.cos(i * 1.7) * 3);
       m.scale.setScalar(0.035 + (i % 3) * 0.015);
       this.starGroup.add(m);
     }
-    const moon = new THREE.Mesh(this.geometries.sphere, new THREE.MeshBasicMaterial({ color: '#fff1b8' }));
+    this.moonMaterial = new THREE.MeshBasicMaterial({ color: '#fff1b8', transparent: true, opacity: 0, depthWrite: false });
+    const moon = new THREE.Mesh(this.geometries.sphere, this.moonMaterial);
     moon.position.set(1.2, 3.4, -6);
     moon.scale.setScalar(0.42);
     this.starGroup.add(moon);
     this.scene.add(this.starGroup);
     const fireMat = new THREE.MeshBasicMaterial({ color: '#fff3a0', transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false });
     for (let i = 0; i < 12; i++) {
-      const m = new THREE.Mesh(this.geometries.sphere, fireMat);
+      const m = new THREE.Mesh(this.geometries.sphere, fireMat.clone());
       m.scale.setScalar(0.055);
       m.visible = false;
       m.userData.phase = i * 1.7;
@@ -512,14 +523,22 @@ export class GardenWorld {
     this.setNight(s.sleeping);
   }
   setNight(sleeping) {
+    // A mudança é solicitada aqui, mas a luz faz a transição no loop.
     this.night = !!sleeping;
-    this.starGroup.visible = this.night;
-    for (const f of this.fireflies) f.visible = this.night;
-    for (const c of this.clouds) c.visible = !this.night;
-    this.sun.intensity = this.night ? 0.5 : 3.4;
-    this.ambient.intensity = this.night ? 1.4 : 2.5;
-    this.ambient.color.set(this.night ? '#c9d2f0' : '#fffaf1');
-    this.windowLight.material.color.set(this.night ? '#ffd77a' : '#cfe3ee');
+  }
+  updateAtmosphere(dt) {
+    this.nightBlend = atmosphereStep(this.nightBlend, this.night, dt, this.reducedMotion);
+    const shade = this.nightBlend;
+    this.sun.intensity = 3.4 - shade * 2.9;
+    this.ambient.intensity = 2.5 - shade * 1.1;
+    this.ambient.color.lerpColors(this.daySkyColor, this.nightSkyColor, shade);
+    this.windowLight.material.color.lerpColors(this.dayWindowColor, this.nightWindowColor, shade);
+    this.starGroup.visible = shade > 0.08;
+    this.starMaterial.opacity = Math.max(0, Math.min(1, (shade - 0.08) * 2.2));
+    this.moonMaterial.opacity = this.starMaterial.opacity;
+    for (const f of this.fireflies) f.visible = shade > 0.15;
+    for (const c of this.clouds) c.visible = shade < 0.87;
+    if (this.petals) this.petals.mesh.visible = shade < 0.62 && this.quality > 0;
   }
   applyQuality() {
     const dpr = window.devicePixelRatio || 1;
@@ -855,6 +874,8 @@ export class GardenWorld {
     this.lastFrame = now;
     if (!this.paused) this.watchPerformance(elapsed / 1000);
     this.time += dt;
+    this.updateAtmosphere(dt);
+    if (this.petals?.mesh.visible) updatePetalField(this.petals, this.time, this.reducedMotion || this.paused);
     this.applyCamera(1 - Math.exp(-dt * 5));
     if (this.time - this.lastPointer > 2.5) this.pet.setLook(0, 0);
     this.idle();
@@ -875,11 +896,11 @@ export class GardenWorld {
       c.position.x += c.userData.speed * dt;
       if (c.position.x > 11) c.position.x = -11;
     }
-    if (this.night) {
+    if (this.nightBlend > 0.15) {
       for (const f of this.fireflies) {
         const ph = f.userData.phase, base = f.userData.base;
         f.position.set(base.x + Math.sin(this.time * 0.5 + ph) * 0.6, base.y + Math.sin(this.time * 0.9 + ph) * 0.3, base.z + Math.cos(this.time * 0.4 + ph) * 0.6);
-        f.material.opacity = 0.35 + Math.max(0, Math.sin(this.time * 2 + ph)) * 0.6;
+        f.material.opacity = this.nightBlend * (0.35 + Math.max(0, Math.sin(this.time * 2 + ph)) * 0.6);
       }
     }
     for (const b of this.bubbles) {
