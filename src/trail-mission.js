@@ -16,10 +16,10 @@ const CLUES = [
 const BRIDGE_SOCKETS = [{x:300,y:302},{x:354,y:289},{x:412,y:302}];
 const DECOR = [{ id:'flower', x:235, y:330, symbol:'🌺' }, { id:'lantern',x:350,y:265,symbol:'🏮' }, { id:'ribbon',x:465,y:330,symbol:'🎀' }];
 const SCENE_VOICES = {
-  forest: 'O Pipo sumiu na floresta! Leve o cachorrinho pelas trilhas e descubra três pistas.',
-  river: 'Encontramos o rio! Arraste troncos ou folhas grandes para criar sua própria travessia.',
-  meadow: 'O Pipo está ali! Afaste o galho, encontre o Pipo e leve seu amigo para casa.',
-  party: 'O Pipo está de volta! Arraste as três surpresas para enfeitar a festa.',
+  forest: 'Toque na trilha para caminhar e encontrar três pistas do Pipo.',
+  river: 'Arraste troncos ou folhas para criar a travessia do rio.',
+  meadow: 'Afaste o galho, encontre o Pipo e leve seu amigo até casa.',
+  party: 'Arraste as três surpresas para preparar a festa do Pipo.',
 };
 const SCENE_LABEL = {forest:'Bosque das pistas',river:'A travessia do rio',meadow:'Resgate no campo',party:'Festa no jardim'};
 const clamp = (x,a,b) => Math.max(a,Math.min(b,x));
@@ -88,16 +88,45 @@ function bunny(c,x,y,t){
   ellipse(c,0,-22,6,5,'#e49da2');ellipse(c,-23,-22,9,5,'#f8d9cf');ellipse(c,23,-22,9,5,'#f8d9cf');
   c.strokeStyle='#85595b';c.lineWidth=2;c.beginPath();c.moveTo(0,-18);c.quadraticCurveTo(7,-12,12,-18);c.stroke();c.restore();
 }
-function paintBackdrop(c,scene,t){
-  const sky=c.createLinearGradient(0,0,0,H);sky.addColorStop(0,scene==='river'?'#b7dcf0':'#bfe5ec');sky.addColorStop(.7,'#f6f0cc');sky.addColorStop(1,'#e9efd0');
-  c.fillStyle=sky;c.fillRect(0,0,W,H);
+function paintBackdrop(c,scene,t,viewW=W,viewH=H,ox=0,oy=0){
+  // Cenário panorâmico responsivo, mantendo personagens proporcionais.
+  const sky=c.createLinearGradient(0,0,0,viewH);
+  sky.addColorStop(0,scene==='river'?'#9dcde2':'#a6d8dd');
+  sky.addColorStop(.40,'#e1eccd');
+  sky.addColorStop(1,'#a7ce91');
+  c.fillStyle=sky;c.fillRect(0,0,viewW,viewH);
   const dx=reduceMotion()?0:Math.sin(t/12)*12;
-  cloud(c,122+dx,84,.65);cloud(c,520-dx,105,.9);
-  ellipse(c,558,75,32,32,'#ffe7a0');
-  c.fillStyle='#acd39e';c.beginPath();c.moveTo(0,265);c.quadraticCurveTo(180,165,380,244);c.quadraticCurveTo(550,155,700,235);c.lineTo(700,H);c.lineTo(0,H);c.fill();
-  c.fillStyle='#88ba88';c.beginPath();c.moveTo(0,330);c.quadraticCurveTo(210,245,410,310);c.quadraticCurveTo(570,250,700,310);c.lineTo(700,H);c.lineTo(0,H);c.fill();
-  for(let i=0;i<24;i++){const x=(i*79+43)%W,y=355+(i*47)%180;leaf(c,x,y,.35,i%3?'#a1d18c':'#d1dda1',i)};
-  for(let i=0;i<14;i++){let x=(i*107+17)%W,y=370+(i*67)%165;flower(c,x,y,.37,i%2?'#f2b9b4':'#f8d692',t+i);}
+  cloud(c,ox+120+dx,Math.max(45,oy-55),1.15);
+  cloud(c,ox+510-dx,Math.max(65,oy+78),.85);
+  ellipse(c,ox+558,oy+68,36,36,'#ffde91');
+  c.fillStyle='#b7d69d';c.beginPath();c.moveTo(0,oy+265);
+  c.quadraticCurveTo(ox+180,oy+145,ox+380,oy+244);
+  c.quadraticCurveTo(ox+550,oy+150,viewW,oy+235);
+  c.lineTo(viewW,viewH);c.lineTo(0,viewH);c.fill();
+  c.fillStyle='#8fbc8a';c.beginPath();c.moveTo(0,oy+328);
+  c.quadraticCurveTo(ox+210,oy+245,ox+410,oy+310);
+  c.quadraticCurveTo(ox+570,oy+245,viewW,oy+304);
+  c.lineTo(viewW,viewH);c.lineTo(0,viewH);c.fill();
+  // A trilha sai da imagem central e continua na parte inferior da tela.
+  if(scene==='forest'||scene==='meadow'){
+    c.save();c.beginPath();c.moveTo(ox+105,viewH+40);
+    c.quadraticCurveTo(ox-3,oy+570,ox+108,oy+490);
+    c.strokeStyle='#dec899';c.lineWidth=100;c.lineCap='round';c.stroke();
+    c.strokeStyle='#f1ddaf';c.lineWidth=83;c.stroke();c.restore();
+  }
+  for(let i=0;i<36;i++){
+    const x=(i*163+27)%viewW;
+    const span=Math.max(160,viewH-oy-350);
+    const y=Math.min(viewH-18,oy+345+(i*79)%span);
+    leaf(c,x,y,.33+(i%3)*.13,i%3?'#9dc989':'#c5df9c',i*.34);
+  }
+  for(let i=0;i<23;i++){
+    const x=(i*211+46)%viewW;
+    const y=Math.min(viewH-22,oy+410+(i*109)%Math.max(140,viewH-oy-415));
+    flower(c,x,y,.29+(i%3)*.07,i%2?'#f2b5ad':'#f4df94',t+i);
+  }
+  if(oy>110){tree(c,ox+55,oy+220,.54,t);tree(c,ox+W-58,oy+205,.5,t);}
+  if(viewH-oy-H>90){tree(c,Math.max(40,ox+58),viewH-90,.58,t);tree(c,Math.min(viewW-40,ox+W-70),viewH-98,.49,t);}
 }
 function roundedPath(c,points,color,w,dash=[]){
   c.save();c.beginPath();c.moveTo(points[0][0],points[0][1]);
@@ -219,6 +248,23 @@ export function createTrailMission(ctx) {
     const dog={x:100,y:460,tx:100,ty:460}, friend={x:548,y:332};
     const drag={id:null,index:-1,method:'',x:0,y:0,moving:false};
     let raf=0, last=0, time=0, disposed=false, messageTimeout=0, surprise=0;
+    let viewW=W, viewH=H, offsetX=0, offsetY=0, waypoint=null;
+    const board=body.querySelector('.trail-board');
+    function resizeCanvas(){
+      const rect=board.getBoundingClientRect();
+      if(!rect.width||!rect.height)return;
+      const ratio=rect.width/rect.height;
+      const w=Math.max(W,Math.round(H*ratio));
+      const h=Math.max(H,Math.round(W/ratio));
+      if(viewW===w&&viewH===h)return;
+      viewW=w;viewH=h;offsetX=(w-W)/2;offsetY=(h-H)*.38;
+      canvas.width=w;canvas.height=h;
+      canvas.dataset.sceneOffsetX=String(offsetX);
+      canvas.dataset.sceneOffsetY=String(offsetY);
+    }
+    resizeCanvas();
+    const resizer=typeof ResizeObserver==='undefined'?null:new ResizeObserver(resizeCanvas);
+    resizer?.observe(board);
     const alive=()=>!disposed && ctx.current()===cur;
     const store=fn=>{
       if(!alive())return;
@@ -250,7 +296,7 @@ export function createTrailMission(ctx) {
       if(s.scene==='party'&&s.decorations.length===3){next.hidden=false;next.textContent='Presentear o Pipo 🌸'}
     }
     function effect(words){ctx.audio.sparkle();ctx.audio.haptic(12);note(words);}
-    function target(x,y){dog.tx=clamp(x,58,644);dog.ty=clamp(y,185,505);}
+    function target(x,y){dog.tx=clamp(x,58,644);dog.ty=clamp(y,185,505);waypoint={x:dog.tx,y:dog.ty,at:time};}
     function hintAction(){
       if(s.scene==='forest'){
         const cl=CLUES.find(x=>!s.clues.includes(x.id));
@@ -272,11 +318,12 @@ export function createTrailMission(ctx) {
       if(!alive()||s.scene!=='party'||s.decorations.length!==3)return;
       store(finishTrail);
       cur.cleanup?.();
+      document.querySelector('#activity-modal .activity-card')?.classList.add('trail-finished');
       ctx.success('trail','Você encontrou o Pipo, atravessou o rio e preparou uma festa juntos!','🐾');
     });
     const local=e=>{
       const r=canvas.getBoundingClientRect();
-      return { x:clamp((e.clientX-r.left)/r.width*W,0,W),y:clamp((e.clientY-r.top)/r.height*H,0,H) };
+      return { x:clamp((e.clientX-r.left)/r.width*viewW-offsetX,0,W),y:clamp((e.clientY-r.top)/r.height*viewH-offsetY,0,H) };
     };
     const pick=(p)=>{
       if(s.scene==='river'){
@@ -347,7 +394,7 @@ export function createTrailMission(ctx) {
         for(const cl of CLUES){
           if(!s.clues.includes(cl.id)&&distance(dog,cl)<67){
             store(a=>discoverTrailClue(a,cl.id));effect('Pista encontrada!');
-            if(s.scene==='forest')say(cl.voice);
+            if(s.scene==='forest')ctx.audio.say(cl.voice);
           }
         }
       }
@@ -365,20 +412,38 @@ export function createTrailMission(ctx) {
     }
     const render=(now)=>{
       if(!alive())return;
-      const dt=Math.min(.05,((now-last)||16)/1000);last=now;
-      if(!document.hidden){time+=reduceMotion()?0:dt;update(dt);paintBackdrop(c,s.scene,time);
+      const dt=Math.min(.05,((now-last)||33)/1000);
+      if(last&&now-last<32){raf=requestAnimationFrame(render);return;}
+      last=now;
+      if(!document.hidden){
+        time+=reduceMotion()?0:dt;
+        update(dt);
+        c.setTransform(1,0,0,1,0,0);
+        paintBackdrop(c,s.scene,time,viewW,viewH,offsetX,offsetY);
+        c.save();c.translate(offsetX,offsetY);
         if(s.scene==='forest')drawForest(c,s,time);
         if(s.scene==='river')drawRiver(c,s,time);
         if(s.scene==='meadow')drawMeadow(c,s,time,friend);
         if(s.scene==='party')drawParty(c,s,time);
+        if(waypoint&&(s.scene==='forest'||s.scene==='meadow')){
+          const elapsed=time-waypoint.at;
+          if(elapsed<1.2){
+            c.save();c.globalAlpha=Math.max(0,1-elapsed/1.2);
+            c.strokeStyle='#fffdf0';c.lineWidth=4;
+            c.beginPath();c.arc(waypoint.x,waypoint.y,17+elapsed*27,0,2*Math.PI);c.stroke();
+            c.restore();
+          }
+        }
         if(s.scene==='forest'||s.scene==='meadow')pup(c,dog.x,dog.y,time,distance(dog,{x:dog.tx,y:dog.ty})>5);
-        if(drag.id==='bridge'){drawPiece(c,drag.method,drag.x,drag.y,time)}
+        if(drag.id==='bridge')drawPiece(c,drag.method,drag.x,drag.y,time);
         if(drag.id==='decor')badge(c,DECOR.find(d=>d.id===drag.method)?.symbol,drag.x,drag.y,time);
-        if(drag.id==='branch'){label(c,'Puxe para o lado!',350,120)}
+        if(drag.id==='branch')label(c,'Puxe para o lado!',350,120);
+        c.restore();
       }
       raf=requestAnimationFrame(render);
     };
-    cur.cleanup=()=>{disposed=true;cancelAnimationFrame(raf);clearTimeout(messageTimeout)};
+    cur.cleanup=()=>{disposed=true;resizer?.disconnect();cancelAnimationFrame(raf);clearTimeout(messageTimeout)};
+    document.querySelector('#activity-modal .activity-card')?.classList.remove('trail-finished');
     refresh();sayScene();raf=requestAnimationFrame(render);
   };
 }

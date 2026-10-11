@@ -87,8 +87,10 @@ try {
   const click = selector => evalJs(`(() => { const el = document.querySelector(${JSON.stringify(selector)}); if (!el) throw new Error('Botão ausente: ${selector}'); el.click(); return true; })()`);
   // Toques reais despachados pelo protocolo do Chrome, sem chamar handlers do jogo.
   const canvasPoint = (x, y) => evalJs(`(() => {
-    const r=document.querySelector('.trail-canvas').getBoundingClientRect();
-    return {x:r.left+r.width*${x}/700,y:r.top+r.height*${y}/580};
+    const cv=document.querySelector('.trail-canvas');
+    const r=cv.getBoundingClientRect();
+    const ox=Number(cv.dataset.sceneOffsetX||0),oy=Number(cv.dataset.sceneOffsetY||0);
+    return {x:r.left+r.width*(${x}+ox)/cv.width,y:r.top+r.height*(${y}+oy)/cv.height};
   })()`);
   const trailTap = async (x, y) => {
     const p=await canvasPoint(x,y);
@@ -165,6 +167,17 @@ try {
   await click('.game-card[data-activity="trail"]');
   assert.equal(await evalJs("window.jardimSofia.getActivity()"),'trail');
   assert.equal(await evalJs("window.jardimSofia.getState().trail.scene"),'forest');
+  const layout=await evalJs(`(() => {
+    const a=document.querySelector('#activity-body').getBoundingClientRect();
+    const b=document.querySelector('.trail-board').getBoundingClientRect();
+    const cv=document.querySelector('.trail-canvas');
+    return {body:a.height,board:b.height,width:b.width,canvasHeight:cv.height,
+      visibleBottom:Math.round(b.bottom),totalHeight:window.innerHeight,
+      canvasRatio:cv.width/cv.height,viewRatio:b.width/b.height};
+  })()`);
+  assert.ok(layout.board>=layout.body*.95,'cena deve preencher a altura útil do jogo');
+  assert.ok(Math.abs(layout.canvasRatio-layout.viewRatio)<.015,'cena não pode ficar distorcida');
+  assert.ok(layout.visibleBottom<=layout.totalHeight+1,'cena precisa caber no celular');
   await snap('smoke-trail-forest.png');
   for(let i=1;i<=3;i++){
     await click('.trail-hint');
