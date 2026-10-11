@@ -248,6 +248,23 @@ export function createTrailMission(ctx) {
     const dog={x:100,y:460,tx:100,ty:460}, friend={x:548,y:332};
     const drag={id:null,index:-1,method:'',x:0,y:0,moving:false};
     let raf=0, last=0, time=0, disposed=false, messageTimeout=0, surprise=0;
+    let viewW=W, viewH=H, offsetX=0, offsetY=0, waypoint=null;
+    const board=body.querySelector('.trail-board');
+    function resizeCanvas(){
+      const rect=board.getBoundingClientRect();
+      if(!rect.width||!rect.height)return;
+      const ratio=rect.width/rect.height;
+      const w=Math.max(W,Math.round(H*ratio));
+      const h=Math.max(H,Math.round(W/ratio));
+      if(viewW===w&&viewH===h)return;
+      viewW=w;viewH=h;offsetX=(w-W)/2;offsetY=(h-H)*.38;
+      canvas.width=w;canvas.height=h;
+      canvas.dataset.sceneOffsetX=String(offsetX);
+      canvas.dataset.sceneOffsetY=String(offsetY);
+    }
+    resizeCanvas();
+    const resizer=typeof ResizeObserver==='undefined'?null:new ResizeObserver(resizeCanvas);
+    resizer?.observe(board);
     const alive=()=>!disposed && ctx.current()===cur;
     const store=fn=>{
       if(!alive())return;
@@ -279,7 +296,7 @@ export function createTrailMission(ctx) {
       if(s.scene==='party'&&s.decorations.length===3){next.hidden=false;next.textContent='Presentear o Pipo 🌸'}
     }
     function effect(words){ctx.audio.sparkle();ctx.audio.haptic(12);note(words);}
-    function target(x,y){dog.tx=clamp(x,58,644);dog.ty=clamp(y,185,505);}
+    function target(x,y){dog.tx=clamp(x,58,644);dog.ty=clamp(y,185,505);waypoint={x:dog.tx,y:dog.ty,at:time};}
     function hintAction(){
       if(s.scene==='forest'){
         const cl=CLUES.find(x=>!s.clues.includes(x.id));
@@ -301,11 +318,12 @@ export function createTrailMission(ctx) {
       if(!alive()||s.scene!=='party'||s.decorations.length!==3)return;
       store(finishTrail);
       cur.cleanup?.();
+      document.querySelector('#activity-modal .activity-card')?.classList.add('trail-finished');
       ctx.success('trail','Você encontrou o Pipo, atravessou o rio e preparou uma festa juntos!','🐾');
     });
     const local=e=>{
       const r=canvas.getBoundingClientRect();
-      return { x:clamp((e.clientX-r.left)/r.width*W,0,W),y:clamp((e.clientY-r.top)/r.height*H,0,H) };
+      return { x:clamp((e.clientX-r.left)/r.width*viewW-offsetX,0,W),y:clamp((e.clientY-r.top)/r.height*viewH-offsetY,0,H) };
     };
     const pick=(p)=>{
       if(s.scene==='river'){
@@ -394,20 +412,38 @@ export function createTrailMission(ctx) {
     }
     const render=(now)=>{
       if(!alive())return;
-      const dt=Math.min(.05,((now-last)||16)/1000);last=now;
-      if(!document.hidden){time+=reduceMotion()?0:dt;update(dt);paintBackdrop(c,s.scene,time);
+      const dt=Math.min(.05,((now-last)||33)/1000);
+      if(last&&now-last<32){raf=requestAnimationFrame(render);return;}
+      last=now;
+      if(!document.hidden){
+        time+=reduceMotion()?0:dt;
+        update(dt);
+        c.setTransform(1,0,0,1,0,0);
+        paintBackdrop(c,s.scene,time,viewW,viewH,offsetX,offsetY);
+        c.save();c.translate(offsetX,offsetY);
         if(s.scene==='forest')drawForest(c,s,time);
         if(s.scene==='river')drawRiver(c,s,time);
         if(s.scene==='meadow')drawMeadow(c,s,time,friend);
         if(s.scene==='party')drawParty(c,s,time);
+        if(waypoint&&(s.scene==='forest'||s.scene==='meadow')){
+          const elapsed=time-waypoint.at;
+          if(elapsed<1.2){
+            c.save();c.globalAlpha=Math.max(0,1-elapsed/1.2);
+            c.strokeStyle='#fffdf0';c.lineWidth=4;
+            c.beginPath();c.arc(waypoint.x,waypoint.y,17+elapsed*27,0,2*Math.PI);c.stroke();
+            c.restore();
+          }
+        }
         if(s.scene==='forest'||s.scene==='meadow')pup(c,dog.x,dog.y,time,distance(dog,{x:dog.tx,y:dog.ty})>5);
-        if(drag.id==='bridge'){drawPiece(c,drag.method,drag.x,drag.y,time)}
+        if(drag.id==='bridge')drawPiece(c,drag.method,drag.x,drag.y,time);
         if(drag.id==='decor')badge(c,DECOR.find(d=>d.id===drag.method)?.symbol,drag.x,drag.y,time);
-        if(drag.id==='branch'){label(c,'Puxe para o lado!',350,120)}
+        if(drag.id==='branch')label(c,'Puxe para o lado!',350,120);
+        c.restore();
       }
       raf=requestAnimationFrame(render);
     };
-    cur.cleanup=()=>{disposed=true;cancelAnimationFrame(raf);clearTimeout(messageTimeout)};
+    cur.cleanup=()=>{disposed=true;resizer?.disconnect();cancelAnimationFrame(raf);clearTimeout(messageTimeout)};
+    document.querySelector('#activity-modal .activity-card')?.classList.remove('trail-finished');
     refresh();sayScene();raf=requestAnimationFrame(render);
   };
 }
