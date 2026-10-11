@@ -6,11 +6,11 @@ Atenção ao **J maiúsculo**: no GitHub Pages o endereço diferencia maiúscula
 
 No celular, abra o link e use **Instalar app** (Chrome no Android) ou **Compartilhar › Adicionar à Tela de Início** (Safari no iPhone). Depois da primeira visita, o jogo funciona sem internet.
 
-Jogo de bichinho virtual para crianças de **3 a 5 anos**, feito em Three.js 0.180.0 para tocar no celular, tablet ou computador. O coelhinho Pipo vive num jardim 3D com seis brincadeiras de letras, números, cores, formas, música e plantas. Tudo é local: modelos, sons, fonte e bibliotecas. Não depende de CDN e não chama serviços externos.
+Jogo de bichinho virtual para crianças de **3 a 5 anos**, feito em Three.js 0.180.0 para tocar no celular, tablet ou computador. O coelhinho Pipo vive num jardim 3D com oito brincadeiras de letras, números, cores, formas, música, plantas, arte e exploração. Tudo é local: modelos, sons, fonte e bibliotecas. Não depende de CDN e não chama serviços externos.
 
 ## Pensado para quem ainda não lê
 
-- **Poucos botões grandes.** O menu tem cinco botões: Cozinha, Banho, Brincar (estrela), Bolhas e Dormir. O jardim também mostra os atalhos Guarda-roupa e Cozinhar. A estrela abre seis cartões grandes, um para cada brincadeira. No cenário, cada estação também tem um balão com ícone.
+- **Poucos botões grandes.** O menu tem cinco botões: Cozinha, Banho, Brincar (estrela), Bolhas e Dormir. O jardim também mostra os atalhos Guarda-roupa e Cozinhar. A estrela abre oito cartões grandes, um para cada brincadeira. No cenário, cada estação também tem um balão com ícone.
 - **Tudo é falado.** O Pipo explica cada brincadeira com a voz do aparelho e diz o nome das letras (“ésse”), os números e as cores. O balão de fala tem um botão para ouvir de novo.
 - **Ajuda automática.** Se a criança fica parada ou erra duas vezes, a resposta certa pulsa, uma mãozinha 👆 aponta para ela e o Pipo repete o pedido. A espera muda com o desafio (6, 9 ou 14 segundos).
 - **Errar não frustra.** A peça balança, volta para o lugar com uma mola e o Pipo diz o que ela é (“Essa é a letra ó. Procure a ésse.”).
@@ -33,6 +33,8 @@ Jogo de bichinho virtual para crianças de **3 a 5 anos**, feito em Three.js 0.1
 - **Música:** xilofone livre ou “Imitar o Pipo”, com melodias de 2, 3 ou 4 notas.
 - **Plantar:** quatro canteiros que guardam o progresso: semente, broto, crescimento e flor.
 - **Um Pipo mais vivo:** focinho que se mexe, orelhas expressivas, sobrancelhas, bochechas que reagem, alongamentos, farejadas e olhares curiosos. O comportamento acompanha seus cuidados sem gerar punições: quando está com sono, ele boceja; com fome, fareja; querendo brincar, pula. Esses momentos só ocorrem na tela do jardim, sem interromper atividades ou a hora de dormir.
+- **Ateliê do Pipo:** pinte com o dedo em três paisagens ilustradas (jardim, céu noturno e lago). Seis cores, oito carimbos, desfazer e limpar. Cada paisagem guarda o desenho localmente, sem pedir foto, conta ou internet. A criança escolhe quando finalizar.
+- **Pequenos exploradores:** procure bichinhos e elementos da natureza em três paisagens, descubra curiosidades narradas pelo Pipo e avance sem cronômetro ou penalidade por errar. Cada retorno apresenta a próxima paisagem.
 - **Aventuras do Pipo:** no menu Brincar, escolha entre três histórias (O piquenique do Pipo, Uma festa no jardim e O segredo das flores). Cada uma liga três brincadeiras em uma pequena aventura. É possível sair, voltar e continuar do mesmo capítulo, inclusive sem internet. Não há prazo, pontuação extra ou punição por parar.
 
 Prévia de Formas: [caixa de encaixes no celular](docs/previews/formas-celular.jpg) e [brinquedo pronto no celular deitado](docs/previews/formas-concluidas-paisagem.jpg).
