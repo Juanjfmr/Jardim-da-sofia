@@ -3,6 +3,7 @@ import { GardenAudio } from './audio.js';
 import { icon, pipoFace } from './icons.js';
 import { $, makeButton, installDrag, particles, confetti, flyTo, holdToActivate, Coach } from './ui.js';
 import { createActivities, ACTIVITY_LIST } from './activities.js';
+import { ADVENTURES, adventureProgress, startAdventure, recordAdventureActivity } from './adventures.js';
 import { createKitchen } from './kitchen.js';
 import { createWardrobe } from './wardrobe.js';
 import {
@@ -162,7 +163,7 @@ function updateNeed() {
 }
 
 function anyOverlayOpen() {
-  return ['activity-modal', 'parent-modal', 'games-sheet', 'wardrobe-sheet', 'kitchen-sheet', 'rest-screen', 'welcome'].some(id => !$(id).hidden);
+  return ['activity-modal', 'parent-modal', 'games-sheet', 'adventure-sheet', 'adventure-sheet', 'wardrobe-sheet', 'kitchen-sheet', 'rest-screen', 'welcome'].some(id => !$(id).hidden);
 }
 
 // Espaço livre para a câmera: entre o balão de fala e as ferramentas do modo.
@@ -303,7 +304,7 @@ function toolbar(html) {
 const CLOSE_BTN = '<button type="button" class="tool-close" aria-label="Voltar ao jardim"></button>';
 
 function home(speak = true) {
-  ['games-sheet', 'wardrobe-sheet', 'kitchen-sheet'].forEach(id => closeSheet(id, false));
+  ['games-sheet', 'adventure-sheet', 'wardrobe-sheet', 'kitchen-sheet'].forEach(id => closeSheet(id, false));
   closeActivity(false);
   mode = 'home';
   $('mode-tools').hidden = true;
@@ -318,6 +319,7 @@ function setCareMode(next) {
   if (!started) return;
   closeActivity(false);
   closeSheet('games-sheet', false);
+  closeSheet('adventure-sheet', false);
   closeSheet('wardrobe-sheet', false);
   closeSheet('kitchen-sheet', false);
   if (next === 'feed') { openSheet('kitchen-sheet'); return; }
@@ -489,11 +491,36 @@ function announceAccessory(id) {
 // ---------------------------------------------------------------------------
 // Folhas (brincadeiras e enfeites)
 // ---------------------------------------------------------------------------
+function renderAdventures() {
+  const grid = $('adventure-grid');
+  const progress = adventureProgress(state);
+  grid.replaceChildren();
+  for (const story of ADVENTURES) {
+    const active = progress?.story.id === story.id;
+    const finished = (state.finishedAdventures || []).includes(story.id);
+    const step = active ? progress.step : story.steps[0];
+    const label = active ? 'Continuar · ' + (progress.index + 1) + '/' + progress.total
+      : finished ? 'Reviver a história' : 'Começar história';
+    const card = makeButton('adventure-card' + (active ? ' is-active' : ''),
+      '<span class="adventure-emoji" aria-hidden="true">' + story.emoji + '</span>'
+      + '<span class="adventure-info"><strong>' + story.title + '</strong><small>'
+      + (active ? step.story : story.intro) + '</small><span class="adventure-action">' + label + '</span></span>',
+      () => {
+        audio.tap();
+        if (!active) state = startAdventure(state, story.id);
+        const next = adventureProgress(state);
+        sync();
+        openActivity(next.step.activity);
+      }, label + ': ' + story.title);
+    grid.appendChild(card);
+  }
+}
+
 function openSheet(id) {
   if (!started || resting) return;
   const trigger = document.activeElement;
   closeActivity(false);
-  ['games-sheet', 'wardrobe-sheet', 'kitchen-sheet'].forEach(other => closeSheet(other, false));
+  ['games-sheet', 'adventure-sheet', 'wardrobe-sheet', 'kitchen-sheet'].forEach(other => closeSheet(other, false));
   wake();
   mode = 'home';
   $('mode-tools').hidden = true;
@@ -516,6 +543,7 @@ function openSheet(id) {
   sync();
   updateInsets();
   if (id === 'games-sheet') audio.say('Do que vamos brincar?');
+  if (id === 'adventure-sheet') { renderAdventures(); audio.say('Escolha uma aventura para brincar comigo!'); }
   $(id).querySelector('.sheet-close, .room-back')?.focus?.();
 }
 function closeSheet(id, focus = true) {
@@ -568,6 +596,7 @@ function openActivity(type) {
   wake();
   closeActivity(false);
   closeSheet('games-sheet', false);
+  closeSheet('adventure-sheet', false);
   closeSheet('wardrobe-sheet', false);
   closeSheet('kitchen-sheet', false);
   mode = 'home';
@@ -575,7 +604,10 @@ function openActivity(type) {
   $('mode-tools').hidden = true;
   restoreFocus = document.activeElement;
   current = { type, rewarded: false, token: Math.random() };
-  $('activity-tag').textContent = info.tag;
+  const storyStep = adventureProgress(state);
+  $('activity-tag').textContent = storyStep?.step.activity === type
+    ? 'AVENTURA DO PIPO · ' + (storyStep.index + 1) + '/' + storyStep.total
+    : info.tag;
   $('activity-title').textContent = info.title;
   $('activity-body').innerHTML = '';
   $('activity-footer').innerHTML = '';
@@ -608,6 +640,8 @@ function success(type, text, picture = '💛', keepResult = false) {
   coach.clear();
   const before = unlockedAccessories(state);
   state = reward(state, type);
+  const storyChange = recordAdventureActivity(state, type);
+  state = storyChange.state;
   const unlocked = unlockedAccessories(state).find(a => !before.includes(a));
   if (unlocked) state = { ...state, accessory: unlocked };
   sync();
@@ -625,6 +659,13 @@ function success(type, text, picture = '💛', keepResult = false) {
     + (gift ? '<div class="gift">' + gift.emoji + ' <span>Presente novo para o Pipo!</span></div>' : '');
   if (!keepResult) body.innerHTML = '';
   body.appendChild(celebration);
+  if (storyChange.advanced) {
+    const chapter = document.createElement('p');
+    chapter.className = 'adventure-chapter';
+    chapter.textContent = storyChange.finished ? storyChange.story.ending
+      : 'Mais um pedacinho da aventura pronto! Vamos ver o que vem depois?';
+    celebration.appendChild(chapter);
+  }
   celebration.querySelector('h3').textContent = 'Muito bem' + nm(', ') + '!';
   if (!keepResult) celebration.querySelector('.celebration-text').textContent = text;
   audio.say('Muito bem' + nm(', ') + '! ' + text + (gift ? ' E você ganhou um presente para o Pipo!' : ''));
@@ -634,13 +675,23 @@ function success(type, text, picture = '💛', keepResult = false) {
   const again = makeButton('big-round again', icon('again') + '<span>De novo</span>', () => { audio.tap(); openActivity(type); }, 'Brincar de novo');
   const back = makeButton('big-round back', icon('home') + '<span>Jardim</span>', () => { audio.tap(); home(); }, 'Voltar ao jardim');
   footer.append(again, back);
+  if (storyChange.advanced) {
+    const storyButton = makeButton('big-round story-next',
+      icon('games') + '<span>' + (storyChange.finished ? 'Histórias' : 'Continuar') + '</span>',
+      () => {
+        audio.tap();
+        if (storyChange.finished) openSheet('adventure-sheet');
+        else openActivity(storyChange.nextActivity);
+      }, storyChange.finished ? 'Ver outras aventuras' : 'Continuar aventura do Pipo');
+    footer.prepend(storyButton);
+  }
 }
 
 // ---------------------------------------------------------------------------
 // Cantinho da família
 // ---------------------------------------------------------------------------
 function openParents() {
-  ['games-sheet', 'wardrobe-sheet', 'kitchen-sheet'].forEach(id => closeSheet(id, false));
+  ['games-sheet', 'adventure-sheet', 'wardrobe-sheet', 'kitchen-sheet'].forEach(id => closeSheet(id, false));
   restoreFocus = document.activeElement;
   audio.stopSpeech();
   $('parent-modal').hidden = false;
@@ -755,7 +806,7 @@ function showRest() {
   if (resting) return;
   resting = true;
   closeActivity(false);
-  ['games-sheet', 'wardrobe-sheet', 'kitchen-sheet'].forEach(id => closeSheet(id, false));
+  ['games-sheet', 'adventure-sheet', 'wardrobe-sheet', 'kitchen-sheet'].forEach(id => closeSheet(id, false));
   $('rest-text').textContent = 'O Pipo ficou com soninho' + nm(', ') + '. Vamos brincar de novo amanhã?';
   $('rest-screen').hidden = false;
   if (!state.sleeping) { state = care(state, 'sleep'); world?.pet.react('sleep'); }
@@ -802,6 +853,7 @@ setupWorld();
 renderTitle();
 
 $('start-btn').addEventListener('click', start);
+$('adventure-launch').addEventListener('click', () => { touch(); openSheet('adventure-sheet'); });
 $('repeat-prompt').addEventListener('click', () => { touch(); audio.activate(); audio.say(prompt); world?.pet.react('wave'); });
 $('need-bubble').addEventListener('click', () => {
   touch();
@@ -837,11 +889,12 @@ document.addEventListener('keydown', e => {
     if (!$('parent-modal').hidden) closeParents();
     else if (!$('wardrobe-sheet').hidden) closeSheet('wardrobe-sheet');
     else if (!$('kitchen-sheet').hidden) closeSheet('kitchen-sheet');
+    else if (!$('adventure-sheet').hidden) closeSheet('adventure-sheet');
     else if (!$('games-sheet').hidden) closeSheet('games-sheet');
     else if (!$('activity-modal').hidden || mode !== 'home') home();
   }
   if (e.key === 'Tab') {
-    const modal = ['parent-modal', 'activity-modal', 'games-sheet', 'wardrobe-sheet', 'kitchen-sheet', 'rest-screen', 'welcome'].map($).find(m => !m.hidden);
+    const modal = ['parent-modal', 'activity-modal', 'games-sheet', 'adventure-sheet', 'adventure-sheet', 'wardrobe-sheet', 'kitchen-sheet', 'rest-screen', 'welcome'].map($).find(m => !m.hidden);
     if (!modal) return;
     const focusable = [...modal.querySelectorAll('button:not(:disabled),input,select')].filter(b => !b.hidden);
     if (!focusable.length) return;
