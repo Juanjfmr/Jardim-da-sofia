@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="./style.css">
   <link rel="stylesheet" href="./pipo-rooms.css">
   <link rel="stylesheet" href="./visual-polish.css">
+  <link rel="stylesheet" href="./visitor-family.css">
 </head>
 <body>
 <div id="app">
@@ -33,6 +34,7 @@
     <canvas id="world" aria-label="Jardim 3D do coelhinho Pipo. Toque no coelhinho para dar carinho."></canvas>
     <div id="webgl-fallback" hidden><div class="fallback-pipo"></div><p>O 3D não está disponível neste aparelho.<br>As brincadeiras continuam nos botões.</p></div>
     <div id="station-labels"></div>
+    <div id="visitor-buttons" class="visitor-buttons" aria-label="Visitantes do jardim" hidden></div>
     <button id="need-bubble" type="button" hidden></button>
     <div class="speech" id="speech">
       <div class="speech-avatar" id="speech-avatar"></div>
@@ -129,6 +131,10 @@
     <h3>Tela</h3>
     <label class="setting-row">Tela cheia ao começar <input id="fullscreen-setting" type="checkbox" checked></label>
     <div class="setting-row column">Tempo de brincadeira por dia<div id="limit-options" class="segmented"></div></div>
+    <h3>Visitantes 3D da família</h3>
+    <p class="setting-help">Importe aqui arquivos .glb que você tenha permissão para usar. Os modelos ficam guardados somente neste aparelho e nunca são enviados à internet. Máximo 15 MB por personagem.</p>
+    <div id="visitor-settings" class="visitor-settings"></div>
+    <p id="visitor-status" class="setting-help" role="status" aria-live="polite"></p>
     <div class="parent-note" id="parent-note">O jardim fica salvo neste aparelho. O Pipo descansa quando o jogo fecha e nunca fica doente. Sem anúncios e sem compras.</div>
     <button id="parent-done" class="big-btn" type="button">Voltar a brincar</button>
   </section>
