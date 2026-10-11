@@ -33,6 +33,8 @@ jobs:
         run: |
           npm ci
           npm test
+      - name: Confirmar opção de modelos privados com quatro GLB fictícios
+        run: node scripts/check-family-bundle.mjs
       - name: Empacotador Android Capacitor 8
         run: |
           npm install --no-save --no-package-lock @capacitor/core@8 @capacitor/android@8 @capacitor/cli@8
