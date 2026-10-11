@@ -159,9 +159,9 @@ export function makeStoryCottage(world, THREE, x, z) {
     }
   }
   window(-0.75,1.35,1.02,false);window(0.75,1.35,1.02,true);
-  const chimney=world.mesh('box','#db9b80',0.70,3.0,-0.46,0.29,0.73,0.33,g);
+  const chimney=world.mesh('box','#db9b80',0.70,2.83,-0.46,0.29,0.92,0.33,g);
   chimney.rotation.z=-0.1;
-  world.mesh('box','#f6d0ac',0.70,3.40,-0.46,0.40,0.13,0.43,g);
+  world.mesh('box','#f6d0ac',0.70,3.33,-0.46,0.40,0.13,0.43,g);
   // Volume de toque único: as dezenas de telhas continuam disponíveis para instancing.
   const touch=new THREE.Mesh(new THREE.BoxGeometry(2.38,2.84,2.14),
     new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false,color:'#ffffff'}));
