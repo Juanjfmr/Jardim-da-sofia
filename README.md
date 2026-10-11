@@ -41,6 +41,14 @@ Prévia de Formas: [caixa de encaixes no celular](docs/previews/formas-celular.j
 
 Prévias das novas brincadeiras: [guarda-roupa](docs/previews/pipo-guarda-roupa.jpg), [cozinha](docs/previews/pipo-cozinha-paisagem.jpg) e [Pipo vestido no jardim](docs/previews/pipo-jardim.jpg).
 
+## Acabamento do jardim (rodada 4)
+
+- **Cenário 3D de livro ilustrado:** casinha de passarinhos e regador complementam os canteiros e objetos anteriores; os adereços não interferem nos toques nem nas estações.
+- **Atmosfera e iluminação:** sono e despertar agora transitam suavemente entre luz do dia, céu noturno, lua, janela iluminada e vaga-lumes. O ajuste não muda os estados salvos.
+- **Pétalas flutuantes:** instanciadas em uma única malha 3D, com limite de 24 unidades e movimento apenas nas bordas do jardim. O efeito desaparece na qualidade mínima e fica estático quando o aparelho pede redução de movimento.
+- **Interface mais consistente:** cartões de atividades, barra de cuidados, balão de fala, navegação e janelas usam a mesma linguagem de materiais, sombras, relevo e foco para teclado. Alvos grandes e cinco ações principais permanecem iguais.
+- **Validação:** testes automatizados para a interpolação, limites de desempenho, materiais e decoração não interativa. A avaliação visual em celulares reais faz parte da rodada final.
+
 ## Cantinho da família
 
 Fica protegido: só abre **segurando a engrenagem por 2 segundos**. Um toque rápido não abre.
