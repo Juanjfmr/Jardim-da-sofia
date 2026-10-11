@@ -1,7 +1,7 @@
 import * as THREE from './vendor/three.module.js';
 import { createBunny } from './pet.js';
 import { moodFromNeeds, chooseIdleMoment, touchZone } from './pipo-behaviors.js';
-import { makeStoryTree, makeStoryCottage, decorateStoryGarden } from './art-direction.js';
+import { makeStoryTree, makeStoryCottage, decorateStoryGarden, addStoryProps } from './art-direction.js';
 import { createPetalField, updatePetalField, atmosphereStep } from './scene-polish.js';
 
 // Poses da câmera. A ortográfica dá o ar de "diorama" e o enquadramento é calculado
@@ -153,6 +153,7 @@ export class GardenWorld {
     this.scene.add(this.environment);
     this.buildGarden(state);
     decorateStoryGarden(this, THREE);
+    addStoryProps(this, THREE);
     this.batchDecorations();
     this.buildSky();
     this.petals = createPetalField(THREE, this.scene, 20);
