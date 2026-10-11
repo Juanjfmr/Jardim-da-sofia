@@ -3,6 +3,7 @@ import { createBunny } from './pet.js';
 import { moodFromNeeds, chooseIdleMoment, touchZone } from './pipo-behaviors.js';
 import { makeStoryTree, makeStoryCottage, decorateStoryGarden, addStoryProps } from './art-direction.js';
 import { createPetalField, updatePetalField, atmosphereStep } from './scene-polish.js';
+import { VisitorAvatar } from './visitor-scene.js';
 
 // Poses da câmera. A ortográfica dá o ar de "diorama" e o enquadramento é calculado
 // para caber exatamente no espaço livre entre o balão de fala e os botões.
@@ -162,6 +163,7 @@ export class GardenWorld {
     this.pet.root.rotation.y = 0.18;
     this.scene.add(this.pet.root);
     this.register(this.pet.root, 'pet');
+    this.visitorAvatar = new VisitorAvatar(this.scene);
     this.addContactShadow();
     this.setState(state);
     this.updateAtmosphere(0);
@@ -881,6 +883,7 @@ export class GardenWorld {
     if (this.time - this.lastPointer > 2.5) this.pet.setLook(0, 0);
     this.idle();
     this.pet.update(dt, this.time);
+    this.visitorAvatar?.update(dt);
     this.pet.root.position.lerp(this.petTarget, 0.05);
     this.shadow.position.x = this.pet.root.position.x;
     this.shadow.position.z = this.pet.root.position.z;
