@@ -25,9 +25,15 @@ const server = createServer(async (req, res) => {
 let browser, connection, profile;
 const finish = async () => {
   try { connection?.close(); } catch { /* already closed */ }
-  if (browser && browser.exitCode === null) browser.kill('SIGKILL');
+  if (browser && browser.exitCode === null && browser.signalCode === null) {
+    const exited = new Promise(ok => browser.once('exit', ok));
+    browser.kill('SIGKILL');
+    await Promise.race([exited, delay(4000)]);
+  }
   await new Promise(done => server.close(done));
-  if (profile) await rm(profile, { recursive: true, force: true });
+  // Chrome cria arquivos de cache em processos filhos; aguardar a saída e
+  // repetir rm evita ENOTEMPTY transitório em runners Linux.
+  if (profile) await rm(profile, { recursive: true, force: true, maxRetries: 12, retryDelay: 250 });
 };
 try {
   await new Promise(ok => server.listen(0, '127.0.0.1', ok));
