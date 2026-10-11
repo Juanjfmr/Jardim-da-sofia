@@ -1,0 +1,6 @@
+.godot/
+assets/*.glb
+assets/*.import
+*.apk
+*.aab
+export.cfg
