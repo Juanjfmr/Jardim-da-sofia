@@ -34,6 +34,37 @@ test('bolhas: estourar, repor e reiniciar continuam permitindo terminar', () => 
   assert.equal(world.bubbleRespawn.length, 0);
 });
 
+test('batching preserva animação de árvores e flores em primeiro plano', () => {
+  const world = bareWorld();
+  world.environment = new THREE.Group();
+  world.scene.add(world.environment);
+  world.treeTops = [];
+  world.flowers = [];
+  const geometry = new THREE.SphereGeometry(1, 8, 6);
+  const material = new THREE.MeshStandardMaterial({ color: '#82bd77' });
+  const decorate = count => {
+    const group = new THREE.Group();
+    world.environment.add(group);
+    for (let i = 0; i < count; i++) {
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.x = i * 0.2;
+      group.add(mesh);
+    }
+    return group;
+  };
+  const tree = decorate(3);
+  const flower = decorate(3);
+  const staticPlant = decorate(4);
+  world.treeTops.push(tree);
+  world.flowers.push(flower);
+  world.batchDecorations();
+  assert.equal(tree.children.length, 3, 'a copa continua ligada à árvore para balançar');
+  assert.equal(flower.children.length, 3, 'a flor em primeiro plano continua animável');
+  assert.equal(staticPlant.children.length, 0, 'as plantas estáticas foram agrupadas');
+  assert.ok(world.environment.children.some(child => child.isInstancedMesh),
+    'o agrupamento estático continua funcionando');
+});
+
 test('o coelhinho mantém geometria válida em todas as reações, olhares e enfeites', () => {
   const pet = createBunny(THREE);
   const kinds = ['happy', 'pet', 'eat', 'bath', 'dance', 'sleep', 'wake', 'hop', 'giggle', 'wave', 'no', 'yawn', 'spin'];
