@@ -1,0 +1,142 @@
+/* Rodada 4 — Acabamento de livro ilustrado. Mantém os cinco caminhos do dock.
+   Toda decoração é puramente visual: os botões continuam com alvos grandes. */
+:root {
+  --shadow: 0 13px 34px rgba(52,84,64,.17),0 2px 7px rgba(57,89,68,.06);
+  --shadow-sm: 0 5px 16px rgba(52,84,64,.12),0 2px 3px rgba(52,84,64,.07);
+  --ink: #354d3e;
+  --ink-soft: #5d7463;
+}
+#app { position:relative; isolation:isolate; }
+#app::before {
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 62% 25% at 8% 9%,rgba(255,255,255,.51),transparent 87%),
+    radial-gradient(ellipse 48% 28% at 89% 24%,rgba(255,243,198,.38),transparent 95%);
+  opacity:1; transition:opacity 1.4s ease;
+}
+#app.night::before { opacity:.13; }
+#stage::after {
+  content:''; position:absolute; pointer-events:none; z-index:2; inset:0;
+  box-shadow:inset 0 22px 40px -32px rgba(69,117,105,.2),
+    inset 0 -25px 39px -32px rgba(64,91,54,.28);
+  background:linear-gradient(90deg,rgba(218,241,233,.14),transparent 17%,transparent 85%,rgba(234,245,222,.14));
+}
+#app.night #stage::after {
+  background:radial-gradient(ellipse at 50% 6%,rgba(193,207,245,.12),transparent 58%);
+}
+.topbar { position:relative; }
+.topbar h1 { font-weight:650; letter-spacing:-.65px; text-shadow:0 2px 0 rgba(255,255,255,.32); }
+.chip {
+  background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(255,246,232,.94));
+  border-color:rgba(255,255,255,.97);
+  box-shadow:0 4px 0 rgba(192,143,99,.1),var(--shadow-sm);
+}
+#parent-btn { background:rgba(255,254,245,.90); opacity:.94; }
+.speech {
+  background:linear-gradient(150deg,#fffdf5,#fff8e8);
+  border:3px solid #fff;
+  box-shadow:0 9px 0 -5px rgba(122,161,119,.22),var(--shadow);
+}
+.speech::after { background:#fff9eb; }
+.speech-avatar {
+  border:2px solid #fff; background:linear-gradient(160deg,#fff2da,#f7e2d5);
+  box-shadow:inset 0 2px 5px rgba(153,98,73,.09);
+}
+#prompt-text { color:#476351; letter-spacing:.02px; }
+#repeat-prompt { box-shadow:inset 0 -3px 0 rgba(92,134,75,.13); }
+.station-inner {
+  background:linear-gradient(170deg,rgba(255,255,255,.99),rgba(251,246,231,.97));
+  border:3px solid #fff;
+  box-shadow:0 7px 0 -4px rgba(117,158,111,.3),0 9px 18px rgba(48,84,56,.18);
+}
+#need-bubble { border:3px solid #fff; background:#fff5df; }
+.dock {
+  position:relative;
+  background:linear-gradient(180deg,rgba(255,253,246,.98),rgba(248,247,232,.98));
+  box-shadow:0 -5px 0 -2px rgba(255,255,255,.65),0 -16px 34px rgba(61,94,74,.13);
+  border-color:#fff;
+}
+.dock-btn {
+  box-shadow:inset 0 -5px 0 rgba(79,91,61,.11),0 3px 7px rgba(87,108,73,.06);
+}
+.dock-btn.active {
+  outline:2px solid rgba(48,137,85,.7);
+  outline-offset:2px;
+  box-shadow:inset 0 -5px 0 rgba(79,91,61,.11),0 5px 13px rgba(79,130,88,.12);
+}
+.dock-btn.games {
+  background:linear-gradient(155deg,#fff0ad,#ffcf5d 78%);
+  box-shadow:0 12px 21px rgba(210,158,67,.28),inset 0 -6px 0 rgba(180,118,28,.18);
+}
+.sheet {
+  background:linear-gradient(180deg,#fffefa 0%,#fff9ef 66%,#fdf6e8 100%);
+  box-shadow:0 -10px 0 rgba(255,255,255,.12),0 -26px 60px rgba(43,68,53,.23);
+}
+.sheet-header {
+  position:sticky; top:-16px; z-index:3;
+  margin-top:-8px; padding:9px 4px 13px;
+  background:linear-gradient(180deg,#fffefa 0%,#fffefa 80%,rgba(255,254,250,.93));
+  border-bottom:1px solid rgba(115,149,113,.11);
+}
+.sheet-header h2 { color:#456b51; letter-spacing:-.35px; }
+.games-grid { gap:11px; }
+.game-card {
+  position:relative; overflow:hidden;
+  background:linear-gradient(160deg,#ffffff,var(--tint,#f2efe0));
+  border:3px solid #fff;
+  box-shadow:inset 0 -7px 0 rgba(96,118,87,.07),0 5px 12px rgba(59,85,66,.12);
+  min-height:132px;
+  font-size:19px;
+}
+.game-card::after {
+  content:''; position:absolute; top:-30%; left:-26%; width:100%; height:60%;
+  border-radius:50%; background:rgba(255,255,255,.35);
+  transform:rotate(-17deg); pointer-events:none;
+}
+.game-icon {
+  display:grid; place-items:center; width:82px; height:75px;
+  border-radius:25px; background:rgba(255,255,255,.5);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+}
+.game-card .game-icon svg { filter:drop-shadow(0 3px 0 rgba(60,90,70,.09)); }
+.adventure-launch {
+  background:linear-gradient(120deg,#fdf0c9,#fee7d1 76%);
+  box-shadow:inset 0 -4px 0 rgba(206,157,110,.08),var(--shadow-sm);
+}
+.activity-card {
+  box-shadow:0 25px 68px rgba(36,61,53,.31),inset 0 0 0 1px rgba(255,255,255,.63);
+}
+.instruction {
+  background:rgba(255,255,251,.9);
+  box-shadow:0 3px 9px rgba(76,97,73,.07);
+}
+#activity-footer { background:linear-gradient(180deg,transparent,rgba(250,246,230,.6)); }
+.big-round { box-shadow:0 5px 0 rgba(104,115,86,.10),var(--shadow); }
+.art-frame,.explore-landscape { box-shadow:0 4px 0 #fff,0 12px 24px rgba(54,91,76,.22); }
+.art-scene.selected,.art-color.selected,.art-stamp.selected { outline-offset:1px; }
+button:focus-visible { outline:4px solid #2679a0; outline-offset:3px; }
+@media (hover:hover) and (pointer:fine) {
+  .game-card:hover { transform:translateY(-4px); box-shadow:inset 0 -7px 0 rgba(96,118,87,.07),0 12px 22px rgba(59,85,66,.16); }
+  .dock-btn:hover { filter:brightness(1.025); }
+  .station-label:hover .station-inner { box-shadow:0 0 0 3px #77bd8c,0 9px 18px rgba(48,84,56,.18); }
+}
+@media (max-width:370px) {
+  .game-card { min-height:114px; font-size:17px; }
+  .game-icon { width:65px; height:60px; }
+  .game-icon svg { width:51px; height:51px; }
+  .speech { min-height:74px; }
+}
+@media (min-width:700px) {
+  .sheet { max-width:680px; border-radius:34px; }
+  .game-card { min-height:145px; }
+}
+@media (max-height:520px) and (orientation:landscape) {
+  .sheet-header { top:-16px; }
+  .game-card { min-height:86px; font-size:17px; }
+  .game-icon { height:52px; width:55px; border-radius:16px; }
+  .game-icon svg { width:45px; height:45px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  #app::before,.game-card,.station-inner,.dock-btn,.chip { transition:none !important; }
+  .station-inner { animation:none !important; }
+}
