@@ -236,7 +236,7 @@ test('jornada completa: começar, cuidar, brincar, enfeitar, ajustar e salvar', 
 
     // Rodada 3: Ateliê — carimbo, pintura, desfazer, três cenários e salvamento.
     click('.dock-btn.games');
-    assert.equal(document.querySelectorAll('.game-card').length, 8, 'o menu contém oito atividades reais');
+    assert.equal(document.querySelectorAll('.game-card').length, 9, 'o menu contém nove atividades reais');
     click('.game-card[data-activity="art"]');
     assert.equal(game.getActivity(), 'art');
     assert.equal(document.querySelectorAll('.art-scene').length, 3);
