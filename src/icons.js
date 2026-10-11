@@ -14,6 +14,8 @@ const paths = {
   shapes: '<circle cx="14" cy="14" r="9" fill="#f894a4"/><path d="m34 7 11 19H23Z" fill="#ffc966"/><rect x="14" y="28" width="18" height="16" rx="4" fill="#83c1e9"/>',
   music: '<path d="M19 34V12l22-5v22" stroke="#ac8eda" stroke-width="6"/><ellipse cx="12" cy="35" rx="9" ry="6" fill="#ac8eda"/><ellipse cx="34" cy="30" rx="9" ry="6" fill="#f397b2"/>',
   garden: '<path d="M12 27h25l-4 16H16Z" fill="#eda28b"/><path d="M24 29V12" stroke="#52976b" stroke-width="4"/><ellipse cx="16" cy="16" rx="10" ry="6" transform="rotate(28 16 16)" fill="#90bf77"/><ellipse cx="32" cy="11" rx="10" ry="6" transform="rotate(-28 32 11)" fill="#71b78d"/>',
+  art: '<rect x="5" y="7" width="35" height="34" rx="8" fill="#ffedcf" stroke="#e4a875" stroke-width="2"/><path d="M10 34Q17 17 30 30L37 23" fill="none" stroke="#8ac3a2" stroke-width="6" stroke-linecap="round"/><circle cx="16" cy="17" r="5" fill="#f291a6"/><path d="m34 5 10 10-19 19-9 2 3-9Z" fill="#8db9e5" stroke="#628dbf" stroke-width="2"/>',
+  explore: '<path d="M10 32Q6 20 17 14Q28 8 35 18Q42 29 30 35Q19 42 10 32Z" fill="#d7e9bb" stroke="#6baa86" stroke-width="3"/><circle cx="23" cy="24" r="10" fill="#fff5d7" stroke="#669e88" stroke-width="3"/><path d="m30 31 12 12" stroke="#ae825c" stroke-width="6"/><path d="M20 26q3-7 8 0" fill="none" stroke="#f2b357" stroke-width="3"/>',
   heart: '<path d="M24 39 7 23C-3 10 17 1 24 14 31 1 51 10 41 23Z" fill="#f294a6"/>',
   sound: '<path d="m9 18 9-1 10-9v32L18 31H9Z" fill="#6b8778"/><path d="M34 15c7 5 7 13 0 18m5-24c12 9 12 22 0 30" stroke="#6b8778" stroke-width="3.5" fill="none"/>',
   mute: '<path d="m9 18 9-1 10-9v32L18 31H9Z" fill="#9aa59c"/><path d="m34 18 10 12m0-12L34 30" stroke="#d07b86" stroke-width="4"/>',
