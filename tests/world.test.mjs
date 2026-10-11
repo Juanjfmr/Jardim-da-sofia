@@ -8,7 +8,7 @@ function bareWorld() {
   const world = Object.create(GardenWorld.prototype);
   Object.assign(world, {
     scene: new THREE.Scene(), geometries: { sphere: new THREE.SphereGeometry(1, 8, 6) }, bubbles: [], targets: [], particles: [],
-    foam: [], bubbleRespawn: [], time: 0, petTarget: new THREE.Vector3(), updateFrameTarget: () => {}, onBubble: () => {},
+    foam: [], bubbleRespawn: [], pinwheels: [], time: 0, petTarget: new THREE.Vector3(), updateFrameTarget: () => {}, onBubble: () => {},
   });
   return world;
 }
@@ -54,12 +54,15 @@ test('batching preserva animação de árvores e flores em primeiro plano', () =
   };
   const tree = decorate(3);
   const flower = decorate(3);
+  const pinwheel = decorate(5);
   const staticPlant = decorate(4);
   world.treeTops.push(tree);
   world.flowers.push(flower);
+  world.pinwheels.push(pinwheel);
   world.batchDecorations();
   assert.equal(tree.children.length, 3, 'a copa continua ligada à árvore para balançar');
   assert.equal(flower.children.length, 3, 'a flor em primeiro plano continua animável');
+  assert.equal(pinwheel.children.length, 5, 'as hélices permanecem ligadas ao rotor animado');
   assert.equal(staticPlant.children.length, 0, 'as plantas estáticas foram agrupadas');
   assert.ok(world.environment.children.some(child => child.isInstancedMesh),
     'o agrupamento estático continua funcionando');
@@ -90,6 +93,27 @@ test('o coelhinho mantém geometria válida em todas as reações, olhares e enf
   pet.update(0.1, 5);
   const box = new THREE.Box3().setFromObject(pet.root);
   assert.ok(box.min.y >= -0.15);
+});
+
+test('olhar acompanha o dedo sem deslocar o olho e sombra acompanha o pulo', () => {
+  const pet = createBunny(THREE);
+  const left = pet.root.getObjectByName('pipo-pupil-left');
+  const right = pet.root.getObjectByName('pipo-pupil-right');
+  assert.ok(left && right, 'pupilas independentes presentes no rig');
+  const initial = left.position.x;
+  pet.setLook(0.6, -0.25);
+  for (let i = 0; i < 60; i++) pet.update(1 / 60, i / 60);
+  assert.ok(left.position.x > initial + 0.012, 'pupilas acompanham o olhar horizontal');
+  assert.ok(left.position.y > 0.005, 'pupilas acompanham o olhar vertical');
+  assert.ok(Math.abs(left.position.x - right.position.x) < 0.0001, 'pupilas continuam sincronizadas');
+  pet.react('hop');
+  let maxElevation = 0;
+  for (let i = 0; i < 100; i++) {
+    pet.update(1 / 60, 1 + i / 60);
+    maxElevation = Math.max(maxElevation, pet.getElevation());
+  }
+  assert.ok(maxElevation > 0.15, 'Pipo salta o suficiente para alterar a sombra');
+  assert.equal(pet.getElevation(), 0, 'Pipo aterrissa sem deixar sombra deslocada');
 });
 
 test('enquadramento: as seis estações cabem entre o balão de fala e os botões em vários aparelhos', () => {
