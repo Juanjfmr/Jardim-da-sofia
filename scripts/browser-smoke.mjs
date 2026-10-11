@@ -117,7 +117,7 @@ try {
   await snap('smoke-portrait.png');
 
   await click('.dock-btn.games');
-  assert.equal(await evalJs("document.querySelectorAll('.game-card').length"), 8);
+  assert.equal(await evalJs("document.querySelectorAll('.game-card').length"), 9);
   await click('.game-card[data-activity="art"]');
   assert.equal(await evalJs("window.jardimSofia.getActivity()"), 'art');
   assert.equal(await evalJs("document.querySelectorAll('.art-stamp').length"), 8);
