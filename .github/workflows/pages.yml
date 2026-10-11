@@ -28,6 +28,16 @@ jobs:
       - run: npm ci
       # npm test reconstrói a pasta dist antes de testar.
       - run: npm test
+      - name: Navegador real — retrato, paisagem, pintura e exploração
+        run: npm run smoke:browser
+      - name: Guardar capturas para auditoria visual
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jardim-capturas-${{ github.run_id }}
+          path: smoke-*.png
+          retention-days: 7
+          if-no-files-found: ignore
       - name: Guardar o site para publicar
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v5

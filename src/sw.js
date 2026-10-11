@@ -16,16 +16,37 @@ self.addEventListener('activate', event => {
   );
 });
 
+// Somente requisições dentro do escopo deste aplicativo: GitHub Pages pode
+// hospedar outros projetos na mesma origem.
 self.addEventListener('fetch', event => {
   const req = event.request;
-  if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
-  event.respondWith(
-    caches.match(req, { ignoreSearch: true }).then(hit => hit || fetch(req).then(res => {
-      if (res.ok && res.type === 'basic') {
-        const copy = res.clone();
-        caches.open(CACHE).then(cache => cache.put(req, copy));
+  const url = new URL(req.url);
+  if (req.method !== 'GET' || url.origin !== self.location.origin
+      || !url.pathname.startsWith(new URL(self.registration.scope).pathname)) return;
+
+  if (req.mode === 'navigate') {
+    // Navegação online busca a versão mais recente, sem servir uma tela antiga.
+    // Sem internet, a instalação pré-carregada continua disponível.
+    event.respondWith(fetch(req).then(response => {
+      if (response.ok && response.type === 'basic') {
+        const copy = response.clone();
+        event.waitUntil(caches.open(CACHE).then(cache => cache.put(req, copy)));
       }
-      return res;
-    }).catch(() => (req.mode === 'navigate' ? caches.match('./index.html') : Response.error()))),
-  );
+      return response;
+    }).catch(async () =>
+      await caches.match(req, { ignoreSearch: true })
+      || await caches.match('./index.html')
+      || Response.error()
+    ));
+    return;
+  }
+
+  // Recursos com versão pelo conteúdo: rápidos mesmo sem internet.
+  event.respondWith(caches.match(req, { ignoreSearch: true }).then(hit => hit || fetch(req).then(response => {
+    if (response.ok && response.type === 'basic') {
+      const copy = response.clone();
+      event.waitUntil(caches.open(CACHE).then(cache => cache.put(req, copy)));
+    }
+    return response;
+  }).catch(() => Response.error())));
 });
