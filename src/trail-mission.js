@@ -16,10 +16,10 @@ const CLUES = [
 const BRIDGE_SOCKETS = [{x:300,y:302},{x:354,y:289},{x:412,y:302}];
 const DECOR = [{ id:'flower', x:235, y:330, symbol:'🌺' }, { id:'lantern',x:350,y:265,symbol:'🏮' }, { id:'ribbon',x:465,y:330,symbol:'🎀' }];
 const SCENE_VOICES = {
-  forest: 'O Pipo sumiu na floresta! Leve o cachorrinho pelas trilhas e descubra três pistas.',
-  river: 'Encontramos o rio! Arraste troncos ou folhas grandes para criar sua própria travessia.',
-  meadow: 'O Pipo está ali! Afaste o galho, encontre o Pipo e leve seu amigo para casa.',
-  party: 'O Pipo está de volta! Arraste as três surpresas para enfeitar a festa.',
+  forest: 'Toque na trilha para caminhar e encontrar três pistas do Pipo.',
+  river: 'Arraste troncos ou folhas para criar a travessia do rio.',
+  meadow: 'Afaste o galho, encontre o Pipo e leve seu amigo até casa.',
+  party: 'Arraste as três surpresas para preparar a festa do Pipo.',
 };
 const SCENE_LABEL = {forest:'Bosque das pistas',river:'A travessia do rio',meadow:'Resgate no campo',party:'Festa no jardim'};
 const clamp = (x,a,b) => Math.max(a,Math.min(b,x));
@@ -394,7 +394,7 @@ export function createTrailMission(ctx) {
         for(const cl of CLUES){
           if(!s.clues.includes(cl.id)&&distance(dog,cl)<67){
             store(a=>discoverTrailClue(a,cl.id));effect('Pista encontrada!');
-            if(s.scene==='forest')say(cl.voice);
+            if(s.scene==='forest')ctx.audio.say(cl.voice);
           }
         }
       }
