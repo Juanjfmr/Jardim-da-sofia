@@ -80,7 +80,7 @@ export function makeStoryTree(world, THREE, x, z, scale = 1) {
     dot(world,g,k % 3 ? '#eb8885' : '#f6aa92',x0,y0,z0,0.10,0.11,0.09);
     beam(world, THREE,g,[x0,y0+0.06,z0],[x0-0.02,y0+0.20,z0],0.012,'#668d59');
   }
-  world.treeTops.push(g);
+  // Folhagens serão agrupadas em instâncias pelo renderizador; não animar só o tronco.
   return g;
 }
 
@@ -94,15 +94,8 @@ function roundedBox(THREE,w,h,d,r=0.09) {
   const geo=new THREE.ExtrudeGeometry(shape,{depth:d,bevelEnabled:true,bevelSize:0.012,bevelThickness:0.012,bevelSegments:2,curveSegments:4});
   geo.computeVertexNormals();return geo;
 }
-function cottageFlower(world, parent, x, y, z, color) {
-  beam(world, nullSafeThree, parent, [x,y,z],[x,y+0.22,z],0.022,'#6d9f74');
-}
-// Set by createCottage only to avoid wrapping all mesh helpers in a class.
-let nullSafeThree;
-
 /** Uma casinha com telhas em escamas, alpendre, venezianas e jardim de janela. */
 export function makeStoryCottage(world, THREE, x, z) {
-  nullSafeThree = THREE;
   const g=new THREE.Group();g.name='Casa do Pipo';g.position.set(x,0,z);world.environment.add(g);
   world.mesh('box','#d1ad88',0,0.12,0.10,2.6,0.22,2.22,g);
   const wall = new THREE.Mesh(roundedBox(THREE,2.20,1.98,1.76,0.15),world.mat(PALETTE.plaster));
@@ -169,8 +162,11 @@ export function makeStoryCottage(world, THREE, x, z) {
   const chimney=world.mesh('box','#db9b80',0.70,3.0,-0.46,0.29,0.73,0.33,g);
   chimney.rotation.z=-0.1;
   world.mesh('box','#f6d0ac',0.70,3.40,-0.46,0.40,0.13,0.43,g);
-  // O raycast do telhado, da porta e das janelas continua levando ao sono.
-  world.register(g,'sleep');
+  // Volume de toque único: as dezenas de telhas continuam disponíveis para instancing.
+  const touch=new THREE.Mesh(new THREE.BoxGeometry(2.38,2.84,2.14),
+    new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false,color:'#ffffff'}));
+  touch.position.set(0,1.55,0.04);touch.castShadow=false;
+  g.add(touch);world.register(touch,'sleep');
   return g;
 }
 
