@@ -199,6 +199,30 @@ test('jornada completa: começar, cuidar, brincar, enfeitar, ajustar e salvar', 
     assert.equal(persisted.limit, 15);
     assert.equal(persisted.music, false);
     assert.equal(game.getMode(), 'home');
+
+    // Nova jornada: aventura escolhida no menu, capítulo concluído e retomada.
+    click('.dock-btn.games');
+    click('#adventure-launch');
+    assert.equal($('adventure-sheet').hidden, false);
+    assert.equal(document.querySelectorAll('.adventure-card').length, 3);
+    click('.adventure-card');
+    assert.equal(game.getActivity(), 'count');
+    assert.deepEqual(game.getState().adventure, { id: 'picnic', step: 0 });
+    const storyTarget = Number(document.querySelector('.goal-number').textContent);
+    for (let i = 0; i < storyTarget; i++) click('.carrot-tile:not(:disabled)');
+    await wait(2300);
+    assert.deepEqual(game.getState().adventure, { id: 'picnic', step: 1 });
+    assert.ok(document.querySelector('.big-round.story-next'));
+    click('.big-round.story-next');
+    assert.equal(game.getActivity(), 'colors');
+    click('#activity-close');
+    click('.dock-btn.games');
+    click('#adventure-launch');
+    assert.equal(document.querySelectorAll('.adventure-card.is-active').length, 1);
+    click('.adventure-card.is-active');
+    assert.equal(game.getActivity(), 'colors', 'retoma o próximo capítulo sem perder a etapa');
+    assert.deepEqual(JSON.parse(saved.get('jardim-sofia-v1')).adventure, { id: 'picnic', step: 1 });
+    click('#activity-close');
   } finally {
     intervals.forEach(clearInterval);
     globalThis.setInterval = originalInterval;
