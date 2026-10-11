@@ -1,6 +1,7 @@
 // Estado puro do jogo: sem DOM, sem áudio. Tudo aqui é testado em tests/state.test.mjs.
 
 import { sanitizeAdventure, sanitizeFinishedAdventures } from './adventures.js';
+import { sanitizeArtworks } from './creative-model.js';
 
 export const SAVE_KEY = 'jardim-sofia-v1';
 export const DEFAULT_NAME = 'Sofia';
@@ -71,7 +72,7 @@ const OUTFIT_IDS = OUTFITS.map(o => o.id);
 const OUTFIT_COLOR_IDS = OUTFIT_COLORS.map(c => c.id);
 export const VOICE_SPEEDS = ['slow', 'normal', 'fast'];
 export const VOICE_TONES = ['normal', 'high', 'higher'];
-const COMPLETION_KEYS = ['letters', 'count', 'colors', 'shapes', 'music', 'garden', 'bath', 'play', 'cook'];
+const COMPLETION_KEYS = ['letters', 'count', 'colors', 'shapes', 'music', 'garden', 'art', 'explore', 'bath', 'play', 'cook'];
 
 export function initialState() {
   return {
@@ -86,6 +87,7 @@ export function initialState() {
     rewards: 0, accessory: 'none', outfit: 'none', outfitColor: 'mint',
     completed: {},
     adventure: null, finishedAdventures: [],
+    artworks: {},
     plants: [0, 0, 0, 0],
     visits: 0,
   };
@@ -124,6 +126,7 @@ export function sanitizeState(input) {
   }
   s.adventure = sanitizeAdventure(input.adventure);
   s.finishedAdventures = sanitizeFinishedAdventures(input.finishedAdventures);
+  s.artworks = sanitizeArtworks(input.artworks);
   if (!unlockedAccessories(s).includes(s.accessory)) s.accessory = 'none';
   return s;
 }

@@ -1336,3 +1336,101 @@ h1, h2, h3 { font-weight: 600; }
 .adventure-chapter { margin:12px auto 0; max-width:460px; border:2px solid #f6dfaa; background:#fff7df; border-radius:18px; padding:10px 14px; font-size:17px; line-height:1.3; color:#80602e; }
 .big-round.story-next { background:#fff0bd; }
 @media (max-height:520px) and (orientation:landscape) { .adventure-card { min-height:80px; padding:8px 14px; } .adventure-card .adventure-emoji { font-size:36px; } .adventure-launch { min-height:66px; } }
+
+
+/* Rodada 3 — Ateliê do Pipo: pintura livre em três cenários. */
+#activity-modal[data-activity="art"] #activity-body,
+#activity-modal[data-activity="explore"] #activity-body { justify-content:flex-start; }
+.art-studio { width:100%; display:flex; flex-direction:column; gap:9px; margin:auto 0; }
+.art-scene-tabs { display:flex; gap:8px; }
+.art-scene {
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:0;
+  min-height:52px; padding:3px 5px; background:#f5eedf; border:3px solid #fff; border-radius:18px;
+  box-shadow:var(--shadow-sm);
+}
+.art-scene span { font-size:25px; line-height:1; }
+.art-scene small { font-size:12px; font-weight:600; line-height:1.1; text-align:center; }
+.art-scene.selected { background:#fff1b9; border-color:#eabb76; }
+.art-frame { width:100%; border:5px solid #fff; border-radius:24px; overflow:hidden;
+  box-shadow:0 8px 24px rgba(62,103,87,.17); background:#d7ede7; }
+.art-canvas { display:block; width:100%; height:auto; aspect-ratio:5/3; min-height:140px; max-height:34dvh;
+  touch-action:none; cursor:crosshair; }
+.art-palette, .art-stamp-palette { display:flex; gap:6px; justify-content:space-between; align-items:center; }
+.art-color, .art-stamp { display:flex; justify-content:center; align-items:center; min-width:0;
+  flex:1; height:52px; border:3px solid #fff; border-radius:17px; box-shadow:var(--shadow-sm); }
+.art-color { background:var(--paint); }
+.art-stamp { background:#fff5dd; font-size:27px; }
+.art-color.selected, .art-stamp.selected { outline:3px solid #5e977a; outline-offset:-1px; transform:translateY(-2px); }
+.art-actions { display:flex; gap:8px; }
+.art-actions button { flex:1; min-height:52px; padding:6px; background:#eeeae1; border-radius:18px;
+  border:2px solid #fff; font-size:15px; font-weight:650; }
+.art-actions .art-save { flex:1.35; background:#ffdca4; color:#84522f; }
+.art-actions button:disabled { opacity:.45; }
+#activity-modal[data-activity="art"] .celebration.shape-finish { padding:6px; }
+#activity-modal[data-activity="art"] .celebration.shape-finish h3 { font-size:24px; }
+
+/* Exploradores: uma cena legível por vez, objetos grandes tocáveis. */
+.explore-play { width:100%; display:flex; flex-direction:column; gap:12px; margin:auto 0; }
+.explore-progress { display:flex; justify-content:center; gap:14px; }
+.explore-progress span { display:grid; place-items:center; width:28px; height:28px;
+  color:#c7d8d1; font-size:28px; }
+.explore-progress span.found { color:#f4b94f; }
+.explore-landscape {
+  position:relative; isolation:isolate; overflow:hidden;
+  width:100%; aspect-ratio:5/3; min-height:215px; max-height:45dvh;
+  border:5px solid #fff; border-radius:29px;
+  background:linear-gradient(180deg,#c5e9ed 0%,#d7edcd 63%,#a5c98c 100%);
+  box-shadow:0 12px 25px rgba(61,102,79,.18);
+}
+.explore-landscape.explore-pond { background:linear-gradient(180deg,#bde8e9 0 45%,#97c8a4 46% 59%,#83c1c8 60% 100%); }
+.explore-landscape.explore-night { background:radial-gradient(circle at 70% 28%,#6479ad,#263b70 77%); }
+.explore-sun { position:absolute; left:13%; top:8%; width:54px; height:54px; border-radius:50%;
+  background:#ffe8a1; box-shadow:0 0 0 12px rgba(255,239,176,.2); }
+.explore-night .explore-sun { background:#ffefbf; }
+.explore-hill { position:absolute; bottom:-23%; left:-20%; width:93%; height:56%;
+  border-radius:50% 50% 0 0; background:#8ec29b; transform:rotate(-7deg); }
+.explore-hill.back { left:35%; bottom:-26%; background:#78ad8f; transform:rotate(13deg); }
+.explore-pond .explore-hill, .explore-pond .explore-hill.back { background:#71b4b2; bottom:-29%; }
+.explore-night .explore-hill { background:#385e73; }
+.explore-night .explore-hill.back { background:#345471; }
+.explore-item { position:absolute; z-index:2; display:grid; place-items:center;
+  width:clamp(60px,14vw,82px); height:clamp(60px,14vw,82px);
+  transform:translate(-50%,-50%); background:rgba(255,255,255,.79);
+  border:3px solid rgba(255,255,255,.94); border-radius:50%;
+  box-shadow:0 6px 15px rgba(45,80,70,.18);
+}
+.explore-item span { font-size:clamp(34px,9vw,48px); line-height:1; }
+.explore-item:active { transform:translate(-50%,-50%) scale(.94); }
+.explore-item.found { background:#fff2b9; box-shadow:0 0 0 4px #ecc76f inset,0 6px 15px rgba(45,80,70,.14); }
+.explore-fact { display:flex; align-items:center; justify-content:center; flex:0 0 auto; text-align:center;
+  min-height:62px; padding:10px 16px; background:#f3f5e9; border:2px solid #fff;
+  border-radius:21px; font-size:17px; line-height:1.25; color:#42644d; }
+#activity-modal[data-activity="explore"] .celebration.shape-finish h3 { font-size:24px; }
+@media (max-height:700px) and (orientation:portrait) {
+  .art-canvas { max-height:27dvh; }
+  .art-color, .art-stamp { height:43px; }
+  .art-actions button { min-height:43px; }
+  .art-stamp { font-size:23px; }
+  .explore-landscape { max-height:37dvh; min-height:190px; }
+}
+@media (max-height:520px) and (orientation:landscape) {
+  .art-studio { display:grid; grid-template-columns:minmax(0,1fr) 175px;
+    grid-template-rows:auto 1fr 1fr auto; gap:5px 10px; margin:0; }
+  .art-scene-tabs { grid-column:1 / -1; }
+  .art-scene { min-height:35px; flex-direction:row; gap:5px; }
+  .art-scene span { font-size:21px; }
+  .art-frame { grid-column:1; grid-row:2 / 5; align-self:stretch; }
+  .art-canvas { height:100%; min-height:120px; max-height:none; }
+  .art-palette, .art-stamp-palette { grid-column:2; }
+  .art-color, .art-stamp { height:35px; border-radius:10px; }
+  .art-stamp { font-size:20px; }
+  .art-actions { grid-column:2; flex-wrap:wrap; }
+  .art-actions button { font-size:12px; min-height:29px; padding:3px; border-radius:10px; }
+  .explore-play { display:grid; grid-template-columns:minmax(0,1fr) 170px;
+    grid-template-rows:auto 1fr; gap:6px 10px; margin:0; }
+  .explore-landscape { grid-column:1; grid-row:1 / 3; min-height:155px; max-height:none; height:100%; }
+  .explore-progress { grid-column:2; }
+  .explore-fact { grid-column:2; min-height:0; font-size:14px; align-self:stretch; padding:6px; }
+  .explore-item { width:54px; height:54px; }
+  .explore-item span { font-size:33px; }
+}
