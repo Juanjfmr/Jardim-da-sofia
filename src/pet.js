@@ -1,5 +1,6 @@
 import { OUTFITS, OUTFIT_COLORS } from './state.js';
 import { addStoryBunnyDetails } from './art-direction.js';
+import { PIPO_MOODS } from './pipo-behaviors.js';
 
 /**
  * A small, expressive, texture-free virtual bunny.
@@ -53,7 +54,7 @@ export function createBunny(THREE) {
   rig.add(torso);
   ellipsoid(torso, cream, 0, 0, 0, 0.71, 0.79, 0.55);
   ellipsoid(torso, ivory, 0, -0.01, 0.455, 0.49, 0.57, 0.13);
-  ellipsoid(torso, ivory, 0, -0.19, -0.53, 0.27, 0.27, 0.25);
+  const tail = ellipsoid(torso, ivory, 0, -0.19, -0.53, 0.27, 0.27, 0.25);
 
   const feet = [-1, 1].map(side => {
     const foot = new THREE.Group();
@@ -91,9 +92,10 @@ export function createBunny(THREE) {
   head.add(muzzle);
   ellipsoid(muzzle, ivory, -0.225, -0.235, 0.568, 0.295, 0.228, 0.165);
   ellipsoid(muzzle, ivory, 0.225, -0.235, 0.568, 0.295, 0.228, 0.165);
-  ellipsoid(head, blush, -0.52, -0.14, 0.506, 0.155, 0.095, 0.024, true);
-  ellipsoid(head, blush, 0.52, -0.14, 0.506, 0.155, 0.095, 0.024, true);
-  ellipsoid(muzzle, nosePink, 0, -0.155, 0.748, 0.083, 0.055, 0.038, true);
+  const cheeks = [-1, 1].map(side => ellipsoid(
+    head, blush, side * 0.52, -0.14, 0.506, 0.155, 0.095, 0.024, true,
+  ));
+  const nose = ellipsoid(muzzle, nosePink, 0, -0.155, 0.748, 0.083, 0.055, 0.038, true);
   // Boca que abre para comer e bocejar (fechada fica invisível).
   const mouth = new THREE.Group();
   mouth.position.set(0, -0.335, 0.705);
@@ -127,6 +129,14 @@ export function createBunny(THREE) {
     return closed;
   });
 
+  // Sobrancelhas delicadas: curiosidade e ternura ficam legíveis sem texto.
+  const brows = [-1, 1].map(side => {
+    const brow = new THREE.Group();
+    brow.position.set(side * 0.282, 0.36, 0.604);
+    head.add(brow);
+    stroke(brow, [[-0.078, 0.0, 0], [0, 0.023, 0.012], [0.078, 0.0, 0]], 0.011, nosePink);
+    return brow;
+  });
   addStoryBunnyDetails(THREE, { head, ears, torso, feet, arms });
 
   const dirt = [
@@ -323,6 +333,7 @@ export function createBunny(THREE) {
   }
 
   let sleeping = false;
+  let mood = 'calm';
   let dirtyAmount = 0;
   let reaction = 'idle';
   let reactionAge = 0;
@@ -334,6 +345,7 @@ export function createBunny(THREE) {
   const durations = {
     happy: 1.5, pet: 1.8, eat: 1.9, bath: 1.6, dance: 4, sleep: 1.4, wake: 1.2, hop: 0.85,
     giggle: 1.2, wave: 1.9, no: 1.1, yawn: 2.0, spin: 1.1,
+    nuzzle: 1.55, curious: 1.85, sniff: 1.45, stretch: 2.3, shake: 1.25,
   };
   let lookYaw = 0, lookPitch = 0, lookYawTarget = 0, lookPitchTarget = 0;
   let mouthWanted = 0, mouthBlend = 0;
@@ -351,6 +363,9 @@ export function createBunny(THREE) {
     sleeping = Boolean(value);
     if (!sleeping && reaction === 'sleep') reaction = 'idle';
   }
+  function setMood(value) {
+    mood = PIPO_MOODS.includes(value) ? value : 'calm';
+  }
   function setDirty(amount) {
     dirtyAmount = Math.max(0, Math.min(1, Number(amount) || 0));
     dirtMaterial.opacity = dirtyAmount * 0.50;
@@ -363,7 +378,7 @@ export function createBunny(THREE) {
     reaction = kind;
     reactionAge = 0;
     reactionDuration = durations[kind];
-    if (['pet', 'happy', 'hop', 'giggle', 'eat'].includes(kind)) squashAge = 0;
+    if (['pet', 'happy', 'hop', 'giggle', 'eat', 'nuzzle', 'stretch'].includes(kind)) squashAge = 0;
   }
 
   function update(dt = 1 / 60, time) {
@@ -384,6 +399,11 @@ export function createBunny(THREE) {
     const no = reaction === 'no' ? envelope : 0;
     const yawn = reaction === 'yawn' ? envelope : 0;
     const spinT = reaction === 'spin' ? progress : 0;
+    const nuzzle = reaction === 'nuzzle' ? envelope : 0;
+    const curious = reaction === 'curious' ? envelope : 0;
+    const sniff = reaction === 'sniff' ? envelope : 0;
+    const stretch = reaction === 'stretch' ? envelope : 0;
+    const shake = reaction === 'shake' ? envelope : 0;
     squashAge += dt;
     const squash = Math.exp(-squashAge * 5.5) * Math.sin(squashAge * 17) * 0.11;
     lookYaw += (lookYawTarget - lookYaw) * (1 - Math.exp(-dt * 6));
@@ -393,21 +413,34 @@ export function createBunny(THREE) {
 
     sleepBlend += ((sleeping ? 1 : 0) - sleepBlend) * (1 - Math.exp(-dt * 5));
     const breath = Math.sin(clock * (sleeping ? 1.7 : 2.6)) * 0.013;
+    const tired = mood === 'sleepy' ? 1 : 0;
+    const playful = mood === 'playful' ? 1 : 0;
+    const hungry = mood === 'hungry' ? 1 : 0;
     const jump = hop * 0.44 + happy * bounce * 0.14 + dance * bounce * 0.19;
-    rig.position.y = jump - sleepBlend * 0.075;
-    rig.rotation.x = bath * Math.sin(reactionAge * 16) * 0.035;
-    rig.rotation.z = sleepBlend * 0.035 + dance * Math.sin(reactionAge * 8) * 0.115 + giggle * Math.sin(reactionAge * 30) * 0.05;
+    rig.position.y = jump - sleepBlend * 0.075 + stretch * 0.12 + playful * Math.sin(clock * 1.9) * 0.012;
+    rig.rotation.x = bath * Math.sin(reactionAge * 16) * 0.035 + nuzzle * 0.06 + sniff * 0.055;
+    rig.rotation.z = sleepBlend * 0.035 + dance * Math.sin(reactionAge * 8) * 0.115 + giggle * Math.sin(reactionAge * 30) * 0.05 + shake * Math.sin(reactionAge * 35) * 0.045;
     const ease = spinT < 0.5 ? 2 * spinT * spinT : 1 - Math.pow(-2 * spinT + 2, 2) / 2;
     rig.rotation.y = ease * Math.PI * 2;
     rig.scale.set(1 + squash * 0.55, 1 - squash, 1 + squash * 0.55);
-    torso.scale.set(1 + breath * 0.32 + pet * 0.035, 1 + breath - sleepBlend * 0.045 - pet * 0.025, 1 + breath * 0.35);
+    torso.scale.set(1 + breath * 0.32 + pet * 0.035 + stretch * 0.025, 1 + breath - sleepBlend * 0.045 - pet * 0.025 + stretch * 0.085, 1 + breath * 0.35);
     torso.position.y = 0.93 - sleepBlend * 0.07;
-    head.position.y = 1.98 - sleepBlend * 0.18 - pet * 0.045;
+    head.position.y = 1.98 - sleepBlend * 0.18 - pet * 0.045 - nuzzle * 0.09 + stretch * 0.10 - tired * 0.045;
     const awake = 1 - sleepBlend;
-    head.rotation.x = sleepBlend * 0.18 + eat * Math.sin(reactionAge * 11) * 0.045 - happy * 0.05 - yawn * 0.22 - lookPitch * awake;
-    head.rotation.y = wobble * 0.035 + bath * Math.sin(reactionAge * 24) * 0.18 + no * Math.sin(reactionAge * 15) * 0.32 + lookYaw * awake;
-    head.rotation.z = sleepBlend * 0.06 + pet * 0.075 + dance * Math.sin(reactionAge * 7) * 0.14 + wobble * 0.012 + giggle * Math.sin(reactionAge * 24) * 0.09;
-    muzzle.scale.set(1 + eat * Math.sin(reactionAge * 16) * 0.035, 1 - eat * Math.sin(reactionAge * 16) * 0.045, 1);
+    head.rotation.x = sleepBlend * 0.18 + eat * Math.sin(reactionAge * 11) * 0.045 - happy * 0.05 - yawn * 0.22 - lookPitch * awake + sniff * 0.12 + curious * -0.11 + nuzzle * 0.13 + tired * 0.07;
+    head.rotation.y = wobble * 0.035 + bath * Math.sin(reactionAge * 24) * 0.18 + no * Math.sin(reactionAge * 15) * 0.32 + lookYaw * awake + curious * Math.sin(reactionAge * 3.7) * 0.15 + shake * Math.sin(reactionAge * 31) * 0.25;
+    head.rotation.z = sleepBlend * 0.06 + pet * 0.075 + dance * Math.sin(reactionAge * 7) * 0.14 + wobble * 0.012 + giggle * Math.sin(reactionAge * 24) * 0.09 + nuzzle * 0.18 + curious * 0.14;
+    muzzle.scale.set(1 + eat * Math.sin(reactionAge * 16) * 0.035 + sniff * 0.025, 1 - eat * Math.sin(reactionAge * 16) * 0.045, 1);
+    // Focinho se mexe e as bochechas ficam mais redondinhas com carinho.
+    const twitch = Math.sin(clock * (hungry ? 12 : 5.2)) * (hungry ? 0.018 : 0.006);
+    nose.position.x = twitch + sniff * Math.sin(reactionAge * 20) * 0.018;
+    nose.scale.set(0.083 * (1 + sniff * 0.18), 0.055 * (1 + sniff * 0.21), 0.038);
+    for (let i = 0; i < 2; i++) {
+      const smile = Math.max(pet, nuzzle, happy, giggle);
+      cheeks[i].scale.set(0.155 * (1 + smile * 0.15), 0.095 * (1 + smile * 0.22), 0.024);
+      brows[i].rotation.z = (i === 0 ? -1 : 1) * (curious * 0.19 - tired * 0.12 + nuzzle * 0.04);
+    }
+    tail.rotation.z = Math.sin(clock * 5 + reactionAge * 6) * (0.055 + playful * 0.055 + happy * 0.08);
     const chew = eat > 0 ? Math.max(0, Math.sin(reactionAge * 13)) * 0.8 * Math.min(1, eat * 3) : 0;
     const mouthTarget = Math.max(mouthWanted, chew, yawn, giggle * 0.6, happy * 0.35) * awake;
     mouthBlend += (mouthTarget - mouthBlend) * (1 - Math.exp(-dt * 14));
@@ -419,13 +452,15 @@ export function createBunny(THREE) {
       ears[i].rotation.z = side * (-0.21 - (i === 1 ? 0.19 : 0))
         + side * sleepBlend * 0.14 + Math.sin(clock * 2.3 + i) * 0.035
         + bath * Math.sin(reactionAge * 23 + i) * 0.12
-        + happy * Math.sin(reactionAge * 10 + i) * 0.07;
-      ears[i].rotation.x = -0.08 + sleepBlend * 0.15 + pet * 0.08 + dance * Math.sin(reactionAge * 7 + i) * 0.07 + giggle * Math.sin(reactionAge * 20 + i * 2) * 0.12;
+        + happy * Math.sin(reactionAge * 10 + i) * 0.07
+        + (i === 0 ? -1 : 1) * (tired * 0.14 + curious * 0.17 + stretch * -0.14)
+        + shake * Math.sin(reactionAge * 34 + i * 2) * 0.20;
+      ears[i].rotation.x = -0.08 + sleepBlend * 0.15 + pet * 0.08 + dance * Math.sin(reactionAge * 7 + i) * 0.07 + giggle * Math.sin(reactionAge * 20 + i * 2) * 0.12 + curious * -0.12 + shake * Math.sin(reactionAge * 35 + i) * 0.12;
       const waving = side === 1 ? wave : 0;
-      const stretch = yawn * 0.9;
-      arms[i].rotation.z = side * (0.12 + happy * 0.32 + dance * (0.34 + Math.sin(reactionAge * 8 + i * Math.PI) * 0.22) + stretch)
+      const armsUp = yawn * 0.9 + stretch * 0.75;
+      arms[i].rotation.z = side * (0.12 + happy * 0.32 + dance * (0.34 + Math.sin(reactionAge * 8 + i * Math.PI) * 0.22) + armsUp)
         + side * waving * (2.0 + Math.sin(reactionAge * 12) * 0.35);
-      arms[i].rotation.x = -eat * 0.94 - pet * 0.10 - bath * 0.25 - sleepBlend * 0.17 - stretch * 0.3;
+      arms[i].rotation.x = -eat * 0.94 - pet * 0.10 - bath * 0.25 - sleepBlend * 0.17 - armsUp * 0.3 - nuzzle * 0.24;
       feet[i].rotation.x = dance * Math.sin(reactionAge * 8 + i * Math.PI) * 0.09;
     }
 
@@ -439,7 +474,7 @@ export function createBunny(THREE) {
     }
     const blink = blinkAge >= 0 ? 1 - Math.sin(Math.PI * blinkAge / 0.19) * 0.94 : 1;
     const closed = sleepBlend > 0.65;
-    const squint = Math.max(pet * 0.47, happy * 0.12, giggle * 0.6, yawn * 0.85);
+    const squint = Math.max(pet * 0.47, happy * 0.12, giggle * 0.6, yawn * 0.85, nuzzle * 0.55, sniff * 0.18, tired * 0.30);
     const eyeHeight = Math.max(0.045, blink * (1 - squint - sleepBlend * 0.80));
     for (let i = 0; i < 2; i++) {
       eyes[i].visible = !closed;
@@ -451,5 +486,5 @@ export function createBunny(THREE) {
   }
 
   update(0, 0);
-  return { root, head, update, react, setSleeping, setDirty, setAccessory, setOutfit, setLook, setMouth };
+  return { root, head, update, react, setSleeping, setDirty, setMood, setAccessory, setOutfit, setLook, setMouth };
 }
